@@ -112,7 +112,7 @@ router.delete('/:id', auth, async (req, res) => {
     await Set.deleteMany({ deck: deck._id });
     
     // Rimuovi il deck
-    await deck.remove();
+    await Deck.findByIdAndDelete(req.params.id);
     
     // Aggiorna l'utente
     await User.findByIdAndUpdate(
@@ -122,6 +122,7 @@ router.delete('/:id', auth, async (req, res) => {
     
     res.json({ message: 'Deck and associated sets deleted' });
   } catch (err) {
+    console.error('Errore durante l\'eliminazione del deck:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
