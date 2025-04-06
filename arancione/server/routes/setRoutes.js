@@ -38,4 +38,64 @@ router.get('/:deckId/sets', auth, async (req, res) => {
   }
 });
 
+// Elimina un set da un deck
+router.delete('/:deckId/sets/:setId', auth, async (req, res) => {
+  try {
+    const { deckId, setId } = req.params;
+    console.log(`Eliminazione set: deckId=${deckId}, setId=${setId}`);
+
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      console.error('Deck non trovato o non autorizzato');
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    const set = await Set.findById(setId);
+    if (!set || set.deck.toString() !== deckId) {
+      console.error('Set non trovato o non autorizzato');
+      return res.status(404).json({ message: 'Set not found or unauthorized' });
+    }
+
+    // Usa findByIdAndDelete per eliminare il set
+    await Set.findByIdAndDelete(setId);
+
+    // Rimuovi il set dall'elenco dei set del deck
+    deck.sets = deck.sets.filter(id => id.toString() !== setId);
+    await deck.save();
+
+    console.log('Set eliminato con successo');
+    res.json({ message: 'Set eliminato con successo' });
+  } catch (err) {
+    console.error('Errore del server:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Modifica un set in un deck
+router.put('/:deckId/sets/:setId', auth, async (req, res) => {
+  try {
+    const { deckId, setId } = req.params;
+    const { name } = req.body;
+
+    // Trova il deck e verifica che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Trova e aggiorna il set
+    const set = await Set.findById(setId);
+    if (!set || set.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Set not found or unauthorized' });
+    }
+
+    set.name = name || set.name;
+    await set.save();
+
+    res.json(set);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

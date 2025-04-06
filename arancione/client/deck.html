@@ -100,6 +100,35 @@
             color: var(--text-light);
         }
         
+        .set-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .set-actions .action-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .set-actions .action-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .set-actions .action-button.delete:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        
         .no-sets {
             grid-column: 1 / -1;
             text-align: center;
@@ -267,12 +296,28 @@
         </div>
     </div>
 
+    <!-- Modale per modificare il nome del set -->
+    <div class="modal" id="edit-set-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Modifica nome set</h2>
+            <form id="edit-set-form">
+                <div class="form-group">
+                    <label for="edit-set-name" class="form-label">Nome set</label>
+                    <input type="text" id="edit-set-name" class="form-input" placeholder="Inserisci il nuovo nome del set" required>
+                </div>
+                <button type="submit" class="auth-button">Salva modifiche</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         // API Base URL
         const API_URL = 'http://localhost:5050/api';
         let currentDeckId = '';
         let currentSets = [];
-        
+        let currentEditSetId = null;
+
         // Verifica autenticazione e carica i dati
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('token');
@@ -342,30 +387,116 @@
         function displaySets(sets) {
             const container = document.getElementById('sets-container');
             container.innerHTML = '';
-            
+
             if (!sets || sets.length === 0) {
                 container.innerHTML = '<div class="no-sets">Nessun set presente. Aggiungi il tuo primo set!</div>';
                 return;
             }
-            
+
             sets.forEach(set => {
                 const setElement = document.createElement('div');
                 setElement.className = 'set-card';
                 setElement.dataset.setId = set._id;
                 setElement.innerHTML = `
+                    <div class="set-actions">
+                        <div class="action-button edit" title="Modifica set">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="action-button delete" title="Elimina set">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                    </div>
                     <h3>${set.name}</h3>
                     <p>${set.cards?.length || 0} flashcard</p>
                 `;
-                
-                setElement.addEventListener('click', () => {
-                    // Qui potrai navigare alla pagina delle card del set
-                    alert(`Apri il set ${set.name} (ID: ${set._id})`);
+
+                // Event listener per modifica
+                setElement.querySelector('.edit').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openEditSetModal(set._id, set.name);
                 });
-                
+
+                // Event listener per eliminazione
+                setElement.querySelector('.delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Sei sicuro di voler eliminare il set "${set.name}"?`)) {
+                        deleteSet(set._id);
+                    }
+                });
+
+                setElement.addEventListener('click', () => {
+                    alert(`Apri il set ${set.name} (ID: ${set._id})`);
+                    // Qui puoi navigare alla pagina delle card del set
+                });
+
                 container.appendChild(setElement);
             });
         }
-        
+
+        // Funzione per eliminare un set
+        async function deleteSet(setId) {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${setId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Errore nell\'eliminazione del set');
+                
+                alert('Set eliminato con successo!');
+                currentSets = currentSets.filter(set => set._id !== setId);
+                displaySets(currentSets);
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        }
+
+        // Apri il modale per modificare il set
+        function openEditSetModal(setId, setName) {
+            currentEditSetId = setId;
+            document.getElementById('edit-set-name').value = setName;
+            document.getElementById('edit-set-modal').style.display = 'flex';
+        }
+
+        // Gestisci il form per modificare il set
+        document.getElementById('edit-set-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newName = document.getElementById('edit-set-name').value;
+
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentEditSetId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ name: newName })
+                });
+
+                if (!response.ok) throw new Error('Errore nella modifica del set');
+
+                const updatedSet = await response.json();
+
+                // Aggiorna il set nella lista corrente
+                currentSets = currentSets.map(set => set._id === updatedSet._id ? updatedSet : set);
+                displaySets(currentSets);
+
+                // Chiudi il modale
+                document.getElementById('edit-set-modal').style.display = 'none';
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        });
+
+        // Chiudi il modale per la modifica
+        document.querySelector('#edit-set-modal .close-modal').addEventListener('click', () => {
+            document.getElementById('edit-set-modal').style.display = 'none';
+        });
+
         // Configura gli event listener
         function setupEventListeners() {
             // Pulsante indietro
