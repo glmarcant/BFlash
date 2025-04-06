@@ -322,8 +322,7 @@
                     // Add click event to open deck
                     deckElement.addEventListener('click', function() {
                         // Navigate to deck detail page (to be implemented)
-                        // window.location.href = `deck.html?id=${deck._id}`;
-                        alert(`Apertura mazzo: ${deck.subject || 'Senza titolo'}`);
+                        window.location.href = `deck.html?id=${deck._id}`;
                     });
                     
                     decksContainer.appendChild(deckElement);

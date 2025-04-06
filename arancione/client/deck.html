@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NomeApp - Flashcard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Stili specifici per la pagina dei set */
+        .deck-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background-color: var(--card-background);
+            transition: all 0.2s;
+        }
+        
+        .back-button:hover {
+            background-color: var(--sidebar-hover);
+            transform: translateX(-2px);
+        }
+        
+        .deck-title {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .deck-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+        
+        .action-button.delete:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        
+        /* Stili per i set */
+        .sets-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .set-card {
+            background-color: var(--card-background);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .set-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .set-card h3 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--text);
+        }
+        
+        .set-card p {
+            margin: 10px 0 0;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .no-sets {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        /* Modali */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: var(--card-background);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--gray);
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+        
+        .auth-button {
+            background-color: var(--primary);
+            color: var(--background);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        .auth-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="logo-circle">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="app-name">NomeApp</div>
+        </div>
+        <div class="search-profile">
+            <input type="text" class="search-bar" placeholder="Cerca...">
+            <div class="crown">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="profile-icon" id="profile-menu-button">
+                <i class="fas fa-user"></i>
+            </div>
+            
+            <!-- Profile dropdown menu -->
+            <div class="profile-dropdown" id="profile-dropdown" style="display: none;">
+                <div class="dropdown-item" id="username-display">Username</div>
+                <div class="dropdown-item" id="logout-button">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Deck Header -->
+    <div class="deck-header">
+        <div class="back-button" id="back-button">
+            <i class="fas fa-arrow-left"></i>
+            <span style="margin-left: 8px;">Home</span>
+        </div>
+        <h1 class="deck-title" id="deck-title">Diritto</h1>
+        <div class="deck-actions">
+            <div class="action-button" id="study-button" title="Studia">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="action-button" id="edit-button" title="Modifica mazzo">
+                <i class="fas fa-edit"></i>
+            </div>
+            <div class="action-button delete" id="delete-button" title="Elimina mazzo">
+                <i class="fas fa-trash"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Set Button -->
+    <div class="add-deck-container" id="add-set-button">
+        <div class="add-circle">
+            <i class="fas fa-plus"></i>
+        </div>
+        <div class="add-deck-button">Add new set</div>
+    </div>
+    
+    <!-- Sets Container -->
+    <div class="sets-container" id="sets-container">
+        <div class="no-sets">Nessun set presente. Aggiungi il tuo primo set!</div>
+    </div>
+    
+    <!-- Add Set Modal -->
+    <div class="modal" id="add-set-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Crea nuovo set</h2>
+            <form id="add-set-form">
+                <div class="form-group">
+                    <label for="set-name" class="form-label">Nome set</label>
+                    <input type="text" id="set-name" class="form-input" placeholder="Inserisci il nome del set" required>
+                </div>
+                <button type="submit" class="auth-button">Crea set</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="delete-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Conferma eliminazione</h2>
+            <p style="margin-bottom: 20px;">Sei sicuro di voler eliminare questo set? Tutte le flashcard al suo interno verranno eliminate.</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="auth-button" id="cancel-delete" style="background-color: var(--gray);">Annulla</button>
+                <button class="auth-button" id="confirm-delete" style="background-color: #dc3545;">Elimina</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_URL = 'http://localhost:5050/api';
+        let currentDeckId = '';
+        let currentSets = [];
+        
+        // Verifica autenticazione e carica i dati
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            currentDeckId = urlParams.get('id');
+            
+            if (!currentDeckId) {
+                alert('ID mazzo mancante!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            loadDeckDetails();
+            loadSets();
+            setupEventListeners();
+        });
+        
+        // Carica i dettagli del deck
+        async function loadDeckDetails() {
+            try {
+                const response = await fetch(`${API_URL}/decks/${currentDeckId}`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Errore nel caricamento del deck');
+                
+                const deckData = await response.json();
+                document.getElementById('deck-title').textContent = deckData.subject || 'Senza titolo';
+                document.title = `${deckData.subject || 'Mazzo'} - NomeApp`;
+                
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        }
+        
+        // Carica i set del deck
+        async function loadSets() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Errore nel caricamento dei set');
+
+                currentSets = await response.json();
+                displaySets(currentSets);
+
+            } catch (error) {
+                console.error('Errore:', error);
+                document.getElementById('sets-container').innerHTML =
+                    '<div class="no-sets">Errore nel caricamento dei set. Riprova più tardi.</div>';
+            }
+        }
+        
+        // Visualizza i set
+        function displaySets(sets) {
+            const container = document.getElementById('sets-container');
+            container.innerHTML = '';
+            
+            if (!sets || sets.length === 0) {
+                container.innerHTML = '<div class="no-sets">Nessun set presente. Aggiungi il tuo primo set!</div>';
+                return;
+            }
+            
+            sets.forEach(set => {
+                const setElement = document.createElement('div');
+                setElement.className = 'set-card';
+                setElement.dataset.setId = set._id;
+                setElement.innerHTML = `
+                    <h3>${set.name}</h3>
+                    <p>${set.cards?.length || 0} flashcard</p>
+                `;
+                
+                setElement.addEventListener('click', () => {
+                    // Qui potrai navigare alla pagina delle card del set
+                    alert(`Apri il set ${set.name} (ID: ${set._id})`);
+                });
+                
+                container.appendChild(setElement);
+            });
+        }
+        
+        // Configura gli event listener
+        function setupEventListeners() {
+            // Pulsante indietro
+            document.getElementById('back-button').addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+            
+            // Pulsante aggiungi set
+            document.getElementById('add-set-button').addEventListener('click', () => {
+                document.getElementById('add-set-modal').style.display = 'flex';
+            });
+            
+            // Form per creare set
+            document.getElementById('add-set-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const setName = document.getElementById('set-name').value;
+                
+                try {
+                    const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets`, {                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-auth-token': localStorage.getItem('token')
+                        },
+                        body: JSON.stringify({ name: setName })
+                    });
+                    
+                    if (!response.ok) throw new Error('Errore nella creazione del set');
+                    
+                    const newSet = await response.json();
+                    currentSets.push(newSet);
+                    displaySets(currentSets);
+                    document.getElementById('add-set-modal').style.display = 'none';
+                    document.getElementById('add-set-form').reset();
+                    
+                } catch (error) {
+                    console.error('Errore:', error);
+                    alert(`Errore: ${error.message}`);
+                }
+            });
+            
+            // Pulsante elimina deck
+            document.getElementById('delete-button').addEventListener('click', async () => {
+                if (confirm('Sei sicuro di voler eliminare questo mazzo e tutti i suoi set? Questa azione non può essere annullata.')) {
+                    try {
+                        const response = await fetch(`${API_URL}/decks/${currentDeckId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'x-auth-token': localStorage.getItem('token')
+                            }
+                        });
+                        
+                        if (!response.ok) throw new Error('Errore nell\'eliminazione del mazzo');
+                        
+                        alert('Mazzo eliminato con successo!');
+                        window.location.href = 'index.html';
+                        
+                    } catch (error) {
+                        console.error('Errore:', error);
+                        alert(`Errore: ${error.message}`);
+                    }
+                }
+            });
+            
+            // Chiudi modali
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('add-set-modal').style.display = 'none';
+                    document.getElementById('delete-modal').style.display = 'none';
+                });
+            });
+            
+            // Logout
+            document.getElementById('logout-button').addEventListener('click', () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            });
+            
+            // Menu profilo
+            const profileButton = document.getElementById('profile-menu-button');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            
+            profileButton.addEventListener('click', () => {
+                profileDropdown.style.display = profileDropdown.style.display === 'none' ? 'block' : 'none';
+            });
+            
+            document.addEventListener('click', (e) => {
+            if (!profileButton.contains(e.target)) {
+                profileDropdown.style.display = 'none';
+            }
+        });
+        }
+    </script>
+</body>
+</html>

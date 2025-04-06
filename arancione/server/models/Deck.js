@@ -9,22 +9,15 @@ const deckSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  cards: [{
-    front: {
-      type: String,
-      required: true
-    },
-    back: {
-      type: String,
-      required: true
-    },
-    tags: [String]
-  }],
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
+  sets: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Set'
+  }], // Aggiunto campo sets
   createdAt: {
     type: Date,
     default: Date.now
