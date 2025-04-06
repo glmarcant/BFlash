@@ -30,6 +30,9 @@ connectDB();
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/decks', require('./routes/deckRoutes'));
+app.use('/api/decks', require('./routes/cardRoutes')); 
+app.use('/api/sets', require('./routes/setRoutes'));
+
 
 // Servi contenuti statici in produzione
 if (process.env.NODE_ENV === 'production') {

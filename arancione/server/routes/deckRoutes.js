@@ -1,10 +1,11 @@
 const express = require('express');
 const Deck = require('../models/Deck');
+const Set = require('../models/set');  
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Ottieni tutti i mazzi dell'utente
+// Get all decks for the authenticated user
 router.get('/', auth, async (req, res) => {
   try {
     const decks = await Deck.find({ owner: req.user.id }).sort({ createdAt: -1 });
@@ -14,47 +15,45 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Ottieni un mazzo specifico
+// Get a specific deck (con i set associati)
 router.get('/:id', auth, async (req, res) => {
   try {
-    const deck = await Deck.findById(req.params.id);
-    
-    if (!deck) return res.status(404).json({ message: 'Mazzo non trovato' });
-    
-    // Verifica che il mazzo appartenga all'utente
-    if (deck.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Non autorizzato' });
+    const deck = await Deck.findById(req.params.id).populate({
+      path: 'sets',
+      select: 'name cards createdAt',
+      options: { sort: { createdAt: -1 } }
+    });
+
+    if (!deck) {
+      return res.status(404).json({ message: 'Deck not found' });
     }
-    
+
+    if (deck.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
     res.json(deck);
   } catch (err) {
+    console.error('Errore nel caricamento del deck:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Crea un nuovo mazzo
+// Create a new deck (senza cards, ora gestite dai set)
 router.post('/', auth, async (req, res) => {
   try {
-    console.log('POST /decks - Creazione nuovo mazzo');
-    console.log('Dati ricevuti:', req.body);
-    console.log('Utente ID:', req.user.id);
-    
-    const { title, description, subject, cards } = req.body;
+    const { title, description, subject } = req.body;
     
     const newDeck = new Deck({
       title,
       description,
       subject,
-      cards: cards || [],
       owner: req.user.id
     });
-    
-    console.log('Nuovo mazzo da salvare:', newDeck);
-    
+
     const deck = await newDeck.save();
-    console.log('Mazzo salvato con ID:', deck._id);
     
-    // Aggiungi il mazzo all'array dei mazzi dell'utente
+    // Aggiorna l'utente con il nuovo deck
     await User.findByIdAndUpdate(
       req.user.id,
       { $push: { decks: deck._id } },
@@ -63,34 +62,30 @@ router.post('/', auth, async (req, res) => {
     
     res.status(201).json(deck);
   } catch (err) {
-    console.error('Errore nella creazione del mazzo:', err);
+    console.error('Error creating deck:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Aggiorna un mazzo esistente
+// Update a deck (rimuovi la gestione delle cards)
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { title, description, subject, cards } = req.body;
+    const { title, description, subject } = req.body;
     
-    // Verifica che il mazzo esista
     let deck = await Deck.findById(req.params.id);
     
-    if (!deck) return res.status(404).json({ message: 'Mazzo non trovato' });
+    if (!deck) return res.status(404).json({ message: 'Deck not found' });
     
-    // Verifica che il mazzo appartenga all'utente
     if (deck.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Non autorizzato' });
+      return res.status(403).json({ message: 'Unauthorized' });
     }
     
-    // Aggiorna il mazzo
     deck = await Deck.findByIdAndUpdate(
       req.params.id,
       { 
         title, 
         description, 
-        subject, 
-        cards,
+        subject,
         updatedAt: Date.now()
       },
       { new: true }
@@ -102,53 +97,30 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// Elimina un mazzo
+// Delete a deck (con cancellazione a cascata dei set)
 router.delete('/:id', auth, async (req, res) => {
   try {
     const deck = await Deck.findById(req.params.id);
     
-    if (!deck) return res.status(404).json({ message: 'Mazzo non trovato' });
+    if (!deck) return res.status(404).json({ message: 'Deck not found' });
     
-    // Verifica che il mazzo appartenga all'utente
     if (deck.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Non autorizzato' });
+      return res.status(403).json({ message: 'Unauthorized' });
     }
     
-    // Rimuovi il mazzo dalla collezione
+    // Cancella tutti i set associati al deck
+    await Set.deleteMany({ deck: deck._id });
+    
+    // Rimuovi il deck
     await deck.remove();
     
-    // Rimuovi il riferimento al mazzo dall'utente
+    // Aggiorna l'utente
     await User.findByIdAndUpdate(
       req.user.id,
       { $pull: { decks: req.params.id } }
     );
     
-    res.json({ message: 'Mazzo eliminato' });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Aggiungi una nuova carta a un mazzo
-router.post('/:id/cards', auth, async (req, res) => {
-  try {
-    const { front, back, tags } = req.body;
-    
-    const deck = await Deck.findById(req.params.id);
-    
-    if (!deck) return res.status(404).json({ message: 'Mazzo non trovato' });
-    
-    // Verifica che il mazzo appartenga all'utente
-    if (deck.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Non autorizzato' });
-    }
-    
-    deck.cards.push({ front, back, tags: tags || [] });
-    deck.updatedAt = Date.now();
-    
-    await deck.save();
-    
-    res.status(201).json(deck);
+    res.json({ message: 'Deck and associated sets deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
