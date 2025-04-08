@@ -1,17 +1,8 @@
 # BFlash - Flashcard App
 
-**BFlash** è un'applicazione web progettata per aiutarti a imparare in modo efficace utilizzando flashcard. L'app consente agli utenti di creare, gestire e studiare mazzi di flashcard organizzati in set. È ideale per studenti, professionisti e chiunque voglia migliorare le proprie capacità di apprendimento.
-
-## Funzionalità principali
-- **Autenticazione sicura**: Registrazione e login con gestione dei token JWT.
-- **Gestione mazzi**: Crea, modifica ed elimina mazzi di flashcard.
-- **Gestione set**: Organizza le flashcard in set all'interno di un mazzo.
-- **Interfaccia utente moderna**: Design responsivo con modalità chiara e scura.
-- **API REST**: Backend robusto basato su Node.js ed Express.
-- **Database MongoDB**: Archiviazione sicura e scalabile per utenti, mazzi, set e flashcard.
 
 ## Struttura del progetto
-- **Frontend**: HTML, CSS e JavaScript per un'interfaccia utente interattiva.
+- **Frontend**: HTML, CSS e JavaScript.
 - **Backend**: Node.js con Express per la gestione delle API REST.
 - **Database**: MongoDB per la persistenza dei dati.
 
@@ -29,6 +20,7 @@
    ```
 2. Installa le dipendenze:
    ```bash
+   cd arancione
    npm install
    ```
 3. Configura le variabili d'ambiente:  
@@ -45,19 +37,8 @@
 5. Apri il frontend:  
    Usa un server locale come [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) per servire i file HTML.
 
-## Tecnologie utilizzate
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB
-- **Autenticazione**: JSON Web Tokens (JWT)
-- **Stile**: Font Awesome, design responsivo
 
-
-# FlashCards App - Documentazione del Codice
-
-Questo documento spiega la funzione di ogni file nel progetto FlashCards App, un'applicazione per la creazione e lo studio di flashcard.
-
-## File Principali
+## Spiegazione File Principali
 
 ### `.env`
 File che contiene variabili di ambiente sensibili come:
@@ -66,13 +47,12 @@ File che contiene variabili di ambiente sensibili come:
 - URL del database
 - Altre configurazioni che non devono essere condivise pubblicamente
 
-*Nota: Questo file non viene caricato su Git per motivi di sicurezza.*
+*Nota: Questo file non viene caricato su Git per motivi di sicurezza. Chiederlo a totò quando necessario*
 
 ### `.gitignore`
 Specifica quali file e cartelle Git deve ignorare durante il controllo delle versioni, tra cui:
 - `.env` (per non esporre dati sensibili)
 - `node_modules` (librerie installate, che occuperebbero troppo spazio)
-- File temporanei e di sistema
 
 ### `package.json`
 File di configurazione del progetto Node.js che include:
@@ -89,7 +69,8 @@ Contiene tutti i file relativi all'interfaccia utente dell'applicazione.
 La pagina principale dell'applicazione che mostra:
 - Lista dei mazzi dell'utente 
 - Opzioni per creare nuovi mazzi
-- Menu di navigazione principale
+- Menu di navigazione principale per raggiungere: stats.html, friends.html, settings.html
+- Sezione per accedere ai giochi
 
 ### `indexlight.html`
 Versione alternativa della pagina principale con tema chiaro, offrendo:
@@ -114,7 +95,7 @@ Pagina per la gestione di un set specifico di flashcard, che offre:
 - Visualizzazione di tutte le flashcard del set
 - Aggiunta di nuove flashcard
 - Modifica o eliminazione di flashcard esistenti
-- Modalità di studio e quiz per testare la conoscenza
+
 
 ### `style.css`
 File che definisce lo stile visivo dell'intera applicazione, gestendo:
@@ -131,8 +112,6 @@ Contiene il codice che gestisce la logica dell'applicazione e le interazioni con
 File principale che configura il server Express, tra cui:
 - Importazione e configurazione dei middleware necessari
 - Collegamento alle route API
-- Gestione degli errori
-- Impostazioni di sicurezza
 
 ### `server.js`
 File che avvia effettivamente il server, occupandosi di:
@@ -174,14 +153,12 @@ Modello per i set di flashcard all'interno di un mazzo, con:
 - Descrizione
 - Riferimento al mazzo a cui appartiene
 - Lista delle flashcard contenute
-- Statistiche di studio
 
 #### `Card.js`
 Modello per le singole flashcard, contenente:
 - Contenuto del fronte (domanda)
 - Contenuto del retro (risposta)
 - Riferimenti al set e al mazzo di appartenenza
-- Dati di tracciamento dell'apprendimento
 
 ### Sottocartella `routes/`
 
@@ -222,12 +199,3 @@ API per la gestione delle flashcard:
 - Modifica del contenuto delle flashcard
 - Eliminazione di flashcard
 - Aggiornamento dei dati di studio
-
-## Flusso di Funzionamento dell'Applicazione
-
-1. L'utente accede tramite `login.html`
-2. Il backend (`authRoutes.js`) verifica le credenziali e fornisce un token
-3. L'utente visualizza i propri mazzi in `index.html`
-4. Quando seleziona un mazzo, viene caricata `deck.html` con i set relativi
-5. Selezionando un set, l'utente viene portato a `set.html` per visualizzare e studiare le flashcard
-6. Tutte le operazioni CRUD (creazione, lettura, aggiornamento, eliminazione) vengono gestite attraverso le API nel backend
