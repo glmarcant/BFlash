@@ -226,15 +226,15 @@
             <i class="fas fa-arrow-left"></i>
             <span style="margin-left: 8px;">Home</span>
         </div>
-        <h1 class="deck-title" id="deck-title">Diritto</h1>
+        <h1 class="deck-title" id="deck-title"></h1>
         <div class="deck-actions">
-            <div class="action-button" id="study-button" title="Studia">
+            <div class="action-button" id="study-button" title="Study">
                 <i class="fas fa-book"></i>
             </div>
-            <div class="action-button" id="edit-button" title="Modifica mazzo">
+            <div class="action-button" id="edit-button" title="Edit deck">
                 <i class="fas fa-edit"></i>
             </div>
-            <div class="action-button delete" id="delete-button" title="Elimina mazzo">
+            <div class="action-button delete" id="delete-button" title="Delete deck">
                 <i class="fas fa-trash"></i>
             </div>
         </div>
@@ -250,19 +250,19 @@
     
     <!-- Sets Container -->
     <div class="sets-container" id="sets-container">
-        <div class="no-sets">Nessun set presente. Aggiungi il tuo primo set!</div>
+        <div class="no-sets">No sets available. Add your first set!</div>
     </div>
     
     <!-- Add Set Modal -->
     <div class="modal" id="add-set-modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2>Crea nuovo set</h2>
+            <h2>Create new set</h2>
             <form id="add-set-form">
                 <div class="form-group">
-                    <input type="text" id="set-name" class="form-input" placeholder="Inserisci il nome del set" required>
+                    <input type="text" id="set-name" class="form-input" placeholder="Enter set name" required>
                 </div>
-                <button type="submit" class="auth-button">Crea set</button>
+                <button type="submit" class="auth-button">Create set</button>
             </form>
         </div>
     </div>
@@ -271,11 +271,11 @@
     <div class="modal" id="delete-modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2>Conferma eliminazione</h2>
-            <p style="margin-bottom: 20px;">Sei sicuro di voler eliminare questo set? Tutte le flashcard al suo interno verranno eliminate.</p>
+            <h2>Confirm deletion</h2>
+            <p style="margin-bottom: 20px;">Are you sure you want to delete this set? All flashcards inside will be deleted.</p>
             <div style="display: flex; gap: 10px;">
-                <button class="auth-button" id="cancel-delete" style="background-color: var(--gray);">Annulla</button>
-                <button class="auth-button" id="confirm-delete" style="background-color: #dc3545;">Elimina</button>
+                <button class="auth-button" id="cancel-delete" style="background-color: var(--gray);">Cancel</button>
+                <button class="auth-button" id="confirm-delete" style="background-color: #dc3545;">Delete</button>
             </div>
         </div>
     </div>
@@ -284,12 +284,12 @@
     <div class="modal" id="edit-set-modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2>Modifica nome set</h2>
+            <h2>Edit set name</h2>
             <form id="edit-set-form">
                 <div class="form-group">
-                    <input type="text" id="edit-set-name" class="form-input" placeholder="Inserisci il nuovo nome del set" required>
+                    <input type="text" id="edit-set-name" class="form-input" placeholder="Enter new set name" required>
                 </div>
-                <button type="submit" class="auth-button">Salva modifiche</button>
+                <button type="submit" class="auth-button">Save changes</button>
             </form>
         </div>
     </div>
@@ -314,7 +314,7 @@
             currentDeckId = urlParams.get('id');
             
             if (!currentDeckId) {
-                alert('ID mazzo mancante!');
+                alert('Missing deck ID!');
                 window.location.href = 'index.html';
                 return;
             }
@@ -333,10 +333,10 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Errore nel caricamento del deck');
+                if (!response.ok) throw new Error('Error loading deck');
                 
                 const deckData = await response.json();
-                document.getElementById('deck-title').textContent = deckData.subject || 'Senza titolo';
+                document.getElementById('deck-title').textContent = deckData.subject || 'Untitled';
                 document.title = `${deckData.subject || 'Mazzo'} - NomeApp`;
                 
             } catch (error) {
@@ -354,7 +354,7 @@
                     }
                 });
 
-                if (!response.ok) throw new Error('Errore nel caricamento dei set');
+                if (!response.ok) throw new Error('Error loading sets');
 
                 currentSets = await response.json();
                 displaySets(currentSets);
@@ -362,7 +362,7 @@
             } catch (error) {
                 console.error('Errore:', error);
                 document.getElementById('sets-container').innerHTML =
-                    '<div class="no-sets">Errore nel caricamento dei set. Riprova più tardi.</div>';
+                    '<div class="no-sets">Error loading sets. Please try again later.</div>';
             }
         }
         
@@ -372,7 +372,7 @@
             container.innerHTML = '';
 
             if (!sets || sets.length === 0) {
-                container.innerHTML = '<div class="no-sets">Nessun set presente. Aggiungi il tuo primo set!</div>';
+                container.innerHTML = '<div class="no-sets">No sets available. Add your first set!!</div>';
                 return;
             }
 
@@ -382,15 +382,15 @@
                 setElement.dataset.setId = set._id;
                 setElement.innerHTML = `
                     <div class="set-actions">
-                        <div class="action-button edit" title="Modifica set">
+                        <div class="action-button edit" title="Delete set">
                             <i class="fas fa-edit"></i>
                         </div>
-                        <div class="action-button delete" title="Elimina set">
+                        <div class="action-button delete" title="Delete set">
                             <i class="fas fa-trash"></i>
                         </div>
                     </div>
                     <h3>${set.name}</h3>
-                    <p>${set.cards?.length || 0} flashcard</p>
+                    <p>${set.cards?.length || 0} flashcards</p>
                 `;
 
                 // Event listener per modifica
@@ -402,7 +402,7 @@
                 // Event listener per eliminazione
                 setElement.querySelector('.delete').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (confirm(`Sei sicuro di voler eliminare il set "${set.name}"?`)) {
+                    if (confirm(`Are you sure you want to delete the set "${set.name}"?`)) {
                         deleteSet(set._id);
                     }
                 });
@@ -424,9 +424,9 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Errore nell\'eliminazione del set');
+                if (!response.ok) throw new Error('Error deleting set');
                 
-                alert('Set eliminato con successo!');
+                alert('Set succesfully deleted!');
                 currentSets = currentSets.filter(set => set._id !== setId);
                 displaySets(currentSets);
             } catch (error) {
@@ -457,7 +457,7 @@
                     body: JSON.stringify({ name: newName })
                 });
 
-                if (!response.ok) throw new Error('Errore nella modifica del set');
+                if (!response.ok) throw new Error('Error editing set');
 
                 const updatedSet = await response.json();
 
@@ -504,7 +504,7 @@
                         body: JSON.stringify({ name: setName })
                     });
                     
-                    if (!response.ok) throw new Error('Errore nella creazione del set');
+                    if (!response.ok) throw new Error('Error creating set');
                     
                     const newSet = await response.json();
                     currentSets.push(newSet);
@@ -520,7 +520,7 @@
             
             // Pulsante elimina deck
             document.getElementById('delete-button').addEventListener('click', async () => {
-                if (confirm('Sei sicuro di voler eliminare questo mazzo e tutti i suoi set? Questa azione non può essere annullata.')) {
+                if (confirm('Are you sure you want to delete this deck and all its sets? This action cannot be undone.')) {
                     try {
                         const response = await fetch(`${API_URL}/decks/${currentDeckId}`, {
                             method: 'DELETE',
@@ -529,9 +529,9 @@
                             }
                         });
                         
-                        if (!response.ok) throw new Error('Errore nell\'eliminazione del mazzo');
+                        if (!response.ok) throw new Error('Error deleting deck');
                         
-                        alert('Mazzo eliminato con successo!');
+                        alert('Deck successfully deleted!');
                         window.location.href = 'index.html';
                         
                     } catch (error) {

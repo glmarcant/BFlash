@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NomeApp - Accedi o Registrati</title>
+    <title>NomeApp - Login or Register</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
@@ -133,25 +133,25 @@
                 </div>
             </div>
             <div class="app-name">NomeApp</div>
-            <p class="auth-subtitle">La tua app per imparare con le flashcard</p>
+            <p class="auth-subtitle">Your app for learning with flashcards</p>
         </div>
         
         <!-- Login Form -->
         <form id="loginForm" class="login-form">
             <div class="form-group">
                 <label for="loginEmail" class="form-label">Email</label>
-                <input type="email" id="loginEmail" class="form-input" placeholder="Inserisci la tua email" required>
+                <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email" required>
                 <p class="form-error" id="loginEmailError"></p>
             </div>
             <div class="form-group">
                 <label for="loginPassword" class="form-label">Password</label>
-                <input type="password" id="loginPassword" class="form-input" placeholder="Inserisci la password" required>
+                <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
                 <p class="form-error" id="loginPasswordError"></p>
             </div>
             <p class="form-error" id="loginError"></p>
-            <button type="submit" class="auth-button">Accedi</button>
+            <button type="submit" class="auth-button">Sign in</button>
             <div class="auth-toggle">
-                Non hai un account? <a id="showRegister">Registrati</a>
+                Don't have an account? <a id="showRegister">Register</a>
             </div>
         </form>
         
@@ -159,28 +159,28 @@
         <form id="registerForm" class="register-form">
             <div class="form-group">
                 <label for="registerUsername" class="form-label">Username</label>
-                <input type="text" id="registerUsername" class="form-input" placeholder="Scegli un username" required>
+                <input type="text" id="registerUsername" class="form-input" placeholder="Choose a username" required>
                 <p class="form-error" id="registerUsernameError"></p>
             </div>
             <div class="form-group">
                 <label for="registerEmail" class="form-label">Email</label>
-                <input type="email" id="registerEmail" class="form-input" placeholder="Inserisci la tua email" required>
+                <input type="email" id="registerEmail" class="form-input" placeholder="Enter your email" required>
                 <p class="form-error" id="registerEmailError"></p>
             </div>
             <div class="form-group">
                 <label for="registerPassword" class="form-label">Password</label>
-                <input type="password" id="registerPassword" class="form-input" placeholder="Scegli una password (min 6 caratteri)" required>
+                <input type="password" id="registerPassword" class="form-input" placeholder="Choose a password (min 6 characters)" required>
                 <p class="form-error" id="registerPasswordError"></p>
             </div>
             <div class="form-group">
-                <label for="registerConfirmPassword" class="form-label">Conferma Password</label>
-                <input type="password" id="registerConfirmPassword" class="form-input" placeholder="Conferma la password" required>
+                <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" id="registerConfirmPassword" class="form-input" placeholder="Confirm your password" required>
                 <p class="form-error" id="registerConfirmPasswordError"></p>
             </div>
             <p class="form-error" id="registerError"></p>
-            <button type="submit" class="auth-button">Registrati</button>
+            <button type="submit" class="auth-button">Register</button>
             <div class="auth-toggle">
-                Hai già un account? <a id="showLogin">Accedi</a>
+                Already have an account? <a id="showLogin">Sign in</a>
             </div>
         </form>
         
@@ -226,7 +226,7 @@
                 const data = await response.json();
                 
                 if (!response.ok) {
-                    document.getElementById('loginError').textContent = data.message || 'Errore durante il login';
+                    document.getElementById('loginError').textContent = data.message || 'Login error';
                     document.getElementById('loginError').style.display = 'block';
                     return;
                 }
@@ -260,13 +260,13 @@
             
             // Client-side validation
             if (password !== confirmPassword) {
-                document.getElementById('registerConfirmPasswordError').textContent = 'Le password non coincidono';
+                document.getElementById('registerConfirmPasswordError').textContent = 'Passwords don\'t match';
                 document.getElementById('registerConfirmPasswordError').style.display = 'block';
                 return;
             }
             
             if (password.length < 6) {
-                document.getElementById('registerPasswordError').textContent = 'La password deve essere di almeno 6 caratteri';
+                document.getElementById('registerPasswordError').textContent = 'Password must be at least 6 characters';
                 document.getElementById('registerPasswordError').style.display = 'block';
                 return;
             }
@@ -284,10 +284,10 @@
                 
                 if (!response.ok) {
                     if (data.message.includes('User already exists')) {
-                        document.getElementById('registerEmailError').textContent = 'Email già registrata';
+                        document.getElementById('registerEmailError').textContent = 'Email already registered';
                         document.getElementById('registerEmailError').style.display = 'block';
                     } else {
-                        document.getElementById('registerError').textContent = data.message || 'Errore durante la registrazione';
+                        document.getElementById('registerError').textContent = data.message || 'Registration error';
                         document.getElementById('registerError').style.display = 'block';
                     }
                     return;
@@ -299,7 +299,7 @@
                 window.location.href = 'index.html';
                 
             } catch (error) {
-                document.getElementById('registerError').textContent = 'Errore di connessione al server';
+                document.getElementById('registerError').textContent = 'Server connection error';
                 document.getElementById('registerError').style.display = 'block';
             }
         });
