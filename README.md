@@ -1,6 +1,6 @@
 # BFlash - Flashcard App
 
-Demo a flashcard.musuhome.org
+Demo a https://flashcard.musuhome.org
 
 ## Struttura del progetto
 - **Frontend**: HTML, CSS e JavaScript.
