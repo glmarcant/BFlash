@@ -38,6 +38,28 @@ router.get('/:deckId/sets', auth, async (req, res) => {
   }
 });
 
+// Get a specific set by ID
+router.get('/:deckId/sets/:setId', auth, async (req, res) => {
+  try {
+    const { deckId, setId } = req.params;
+    const deck = await Deck.findById(deckId);
+
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    const set = await Set.findById(setId);
+    if (!set || set.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Set not found or unauthorized' });
+    }
+
+    res.json(set);
+  } catch (err) {
+    console.error('Errore nel caricamento del set:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Elimina un set da un deck
 router.delete('/:deckId/sets/:setId', auth, async (req, res) => {
   try {
