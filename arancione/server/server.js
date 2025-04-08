@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path'); // Aggiunto per gestire il routing lato client
 
 // Carica le variabili d'ambiente dal file .env
 dotenv.config();
@@ -34,10 +35,13 @@ app.use('/api/decks', require('./routes/deckRoutes'));
 app.use('/api/sets', require('./routes/setRoutes')); // Questa rimane come è
 app.use('/api/sets', require('./routes/cardRoutes')); // Aggiungi questa linea
 
-// Servi contenuti statici in produzione
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('client'));
-}
+// Servi contenuti statici dalla cartella client in qualsiasi ambiente
+app.use(express.static('client'));
+
+// Per gestire il routing lato client (SPA) e permettere refresh della pagina
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'client', 'index.html'));
+});
 
 // Definisci porta e avvia il server
 const PORT = process.env.PORT || 5050;

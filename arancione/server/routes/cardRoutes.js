@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Card = require('../models/Card');
-const Set = require('../models/set');
+const Set = require('../models/Set');
 const Deck = require('../models/Deck');
 
 // Crea una nuova flashcard in un set

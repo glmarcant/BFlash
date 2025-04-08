@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Set = require('../models/set');
+const Set = require('../models/Set');
 const Deck = require('../models/Deck');
 
 // Crea un nuovo set in un deck

@@ -1,6 +1,6 @@
 const express = require('express');
 const Deck = require('../models/Deck');
-const Set = require('../models/set');  
+const Set = require('../models/Set');  
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
