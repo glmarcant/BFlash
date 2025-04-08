@@ -3,22 +3,20 @@ const mongoose = require('mongoose');
 const SetSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    trim: true
+    required: true
   },
   deck: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Deck',
     required: true
   },
-  cards: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Card'
-  }],
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  cards: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Card'
+    }
+  ]
 });
 
-module.exports = mongoose.model('Set', SetSchema);
+// Controlla se il modello è già stato definito
+module.exports = mongoose.models.Set || mongoose.model('Set', SetSchema);

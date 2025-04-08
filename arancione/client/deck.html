@@ -408,10 +408,8 @@
                 });
 
                 setElement.addEventListener('click', () => {
-                    alert(`Apri il set ${set.name} (ID: ${set._id})`);
-                    // Qui puoi navigare alla pagina delle card del set
+                    window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
                 });
-
                 container.appendChild(setElement);
             });
         }
