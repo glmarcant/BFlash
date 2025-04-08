@@ -35,7 +35,7 @@
    npm start
    ```
 5. Apri il frontend:  
-   Usa un server locale come [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) per servire i file HTML.
+   Visita http://localhost:5050.
 
 
 ## Spiegazione File Principali
