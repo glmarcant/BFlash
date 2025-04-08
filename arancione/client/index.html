@@ -17,7 +17,7 @@
             <div class="app-name">NomeApp</div>
         </div>
         <div class="search-profile">
-            <input type="text" class="search-bar" placeholder="Cerca...">
+            <input type="text" class="search-bar" placeholder="Search...">
             <div class="crown">
                 <i class="fas fa-crown"></i>
             </div>
@@ -59,7 +59,7 @@
         
         <!-- Main Content -->
         <div class="main-content">
-            <h1 class="welcome" id="welcome-message">Ciao, Utente</h1>
+            <h1 class="welcome" id="welcome-message">Welcome, Utente</h1>
         </div>
         
         <!-- Games Section -->
@@ -100,7 +100,7 @@
     <div class="decks-container">
         <div class="decks" id="decks-container">
             <!-- I mazzi verranno caricati dinamicamente qui -->
-            <div class="loading-message">Caricamento mazzi...</div>
+            <div class="loading-message">Loading decks...</div>
         </div>
     </div>
 
@@ -109,17 +109,17 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <form id="add-deck-form">
-                <h2>Crea nuovo deck</h2>
+                <h2>Create new deck</h2>
 
                 <div class="form-group">
-                    <label for="deck-subject" class="form-label">Nome del deck</label>
-                    <input type="text" id="deck-subject" class="form-input" placeholder="Inserisci il nome del deck" required>
+                    <label for="deck-subject" class="form-label">Deck name</label>
+                    <input type="text" id="deck-subject" class="form-input" placeholder="Choose a deck name" required>
                 </div>
                 <div class="form-group">
-                    <label for="deck-description" class="form-label">Descrizione (opzionale)</label>
+                    <label for="deck-description" class="form-label">Description (optional)</label>
                     <textarea id="deck-description" class="form-input" placeholder="Inserisci una descrizione"></textarea>
                 </div>
-                <button type="submit" class="auth-button">Crea deck</button>
+                <button type="submit" class="auth-button">Create deck</button>
             </form>
         </div>
     </div>
@@ -214,7 +214,7 @@
             
             // Update welcome message with stored username
             if (storedUser.username) {
-                document.getElementById('welcome-message').textContent = `Ciao, ${storedUser.username}`;
+                document.getElementById('welcome-message').textContent = `Welcome, ${storedUser.username}`;
                 document.getElementById('username-display').textContent = storedUser.username;
             }
             
@@ -243,7 +243,7 @@
                 console.log('User data received:', userData);
                 
                 // Update welcome message and profile info
-                document.getElementById('welcome-message').textContent = `Ciao, ${userData.username}`;
+                document.getElementById('welcome-message').textContent = `Welcome, ${userData.username}`;
                 document.getElementById('username-display').textContent = userData.username;
                 
                 // Update local storage with fresh user data
@@ -281,7 +281,7 @@
                 
                 // Display user decks
                 if (decks.length === 0) {
-                    decksContainer.innerHTML = '<div class="no-decks">Non hai ancora creato mazzi. Clicca sul pulsante "Add new Deck" per iniziare!</div>';
+                    decksContainer.innerHTML = '<div class="no-decks">You haven’t created any decks yet. Click on the "Add new Deck" button to get started!</div>';
                     return;
                 }
                 
@@ -292,7 +292,7 @@
                     
                     // Aggiungi il contenuto del deck
                     deckElement.innerHTML = `
-                        <div class="subject-title">${deck.subject || 'Senza titolo'}</div>
+                        <div class="subject-title">${deck.subject || 'No title'}</div>
                         
                     `;
                     
@@ -307,7 +307,7 @@
                 
             } catch (error) {
                 console.error('Error loading decks:', error);
-                decksContainer.innerHTML = '<div class="error-message">Errore nel caricamento dei mazzi. Riprova più tardi.</div>';
+                decksContainer.innerHTML = '<div class="error-message">Error loading decks. Try again later.</div>';
             }
         }
         
@@ -370,7 +370,7 @@
                 // Visualizza indicatore di caricamento o disabilita il pulsante
                 const submitButton = this.querySelector('button[type="submit"]');
                 const originalText = submitButton.textContent;
-                submitButton.textContent = 'Creazione in corso...';
+                submitButton.textContent = 'Creating...';
                 submitButton.disabled = true;
                 
                 try {
@@ -395,7 +395,7 @@
                     const newDeck = await response.json();
                     
                     // Mostra un messaggio di conferma
-                    alert('Mazzo creato con successo!');
+                    alert('Deck created succesfully!');
                     
                     // Close modal and reset form
                     addDeckModal.style.display = 'none';
@@ -406,7 +406,7 @@
                     
                 } catch (error) {
                     console.error('Error creating deck:', error);
-                    alert(`Errore nella creazione del mazzo: ${error.message}`);
+                    alert(`Error creating the deck: ${error.message}`);
                 } finally {
                     // Ripristina il pulsante
                     submitButton.textContent = originalText;
