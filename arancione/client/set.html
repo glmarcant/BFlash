@@ -233,6 +233,28 @@
             background-color: var(--success);
             color: white;
         }
+
+        .study-set-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .study-set-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .study-set-button:hover {
+            background-color: var(--primary-dark);
+        }
     </style>
 </head>
 <body>
@@ -356,6 +378,10 @@
                 <button class="study-button next-card" id="next-card-button" style="display: none;">Prossima flashcard</button>
             </div>
         </div>
+    </div>
+
+    <div class="study-set-container">
+        <button class="study-set-button" id="study-set-button">Study set</button>
     </div>
 
     <script>
@@ -703,6 +729,21 @@
                 if (!profileButton.contains(e.target)) {
                     profileDropdown.style.display = 'none';
                 }
+            });
+
+            // Pulsante per studiare il set
+            document.getElementById('study-set-button').addEventListener('click', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const deckId = urlParams.get('deckId');
+                const setId = urlParams.get('setId');
+
+                if (!deckId || !setId) {
+                    alert('ID mazzo o set mancante!');
+                    return;
+                }
+
+                // Reindirizza alla pagina flashcard.html con i parametri deckId e setId
+                window.location.href = `flashcard.html?deckId=${deckId}&setId=${setId}`;
             });
         }
         

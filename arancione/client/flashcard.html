@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Flashcard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: var(--background);
+        }
+
+        .progress-bar-container {
+            width: 80%;
+            height: 20px;
+            background-color: var(--gray);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .flashcard-container {
+            width: 80%;
+            max-width: 1600px;
+            background-color: var(--card-background);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 800px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .flashcard-container.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-content {
+            font-size: 34px;
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 20px;
+            backface-visibility: hidden;
+            position: absolute;
+        }
+
+        .flashcard-content.answer {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-button {
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .show-answer {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .next-card {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .progress-text {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+       
+        .flashcard-container .tap-to-see {
+            position: absolute;
+            bottom: 10px;
+            font-size: 16px;
+            color: rgb(143, 143, 143);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        .flashcard-container.flipped .tap-to-see {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-text" id="progress-text">1 di 3</div>
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="flashcard-container" id="flashcard-container">
+        <div class="flashcard-content question" id="flashcard-content-question">Caricamento...</div>
+        <div class="flashcard-content answer" id="flashcard-content-answer">Risposta...</div>
+        <div class="tap-to-see" id="tap-to-see">Tap to see the answer</div>
+    </div>
+    <div class="flashcard-actions">
+        <button class="action-button next-card" id="next-card-button" style="display: none;">Prossima</button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5050/api';
+        let currentDeckId = '';
+        let currentSetId = '';
+        let currentCards = [];
+        let currentIndex = 0;
+        let showingAnswer = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            currentDeckId = urlParams.get('deckId');
+            currentSetId = urlParams.get('setId');
+
+            if (!currentDeckId || !currentSetId) {
+                alert('ID mazzo o set mancante!');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            await loadCards();
+            displayCard();
+        });
+
+        async function loadCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard');
+
+                currentCards = await response.json();
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('Errore nel caricamento delle flashcard.');
+            }
+        }
+
+        function displayCard() {
+            if (currentCards.length === 0) {
+                document.getElementById('flashcard-content-question').textContent = 'Nessuna flashcard disponibile.';
+                document.getElementById('next-card-button').style.display = 'none';
+                return;
+            }
+
+            const card = currentCards[currentIndex];
+            document.getElementById('flashcard-content-question').textContent = card.question;
+            document.getElementById('flashcard-content-answer').textContent = card.answer;
+            document.getElementById('flashcard-content-answer').style.display = 'none';
+            document.getElementById('next-card-button').style.display = 'none';
+            updateProgressBar();
+            showingAnswer = false;
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentIndex + 1) / currentCards.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').textContent = `${currentIndex + 1} di ${currentCards.length}`;
+        }
+
+        document.getElementById('flashcard-container').addEventListener('click', () => {
+            const flashcardContainer = document.getElementById('flashcard-container');
+            const answerElement = document.getElementById('flashcard-content-answer');
+            const questionElement = document.getElementById('flashcard-content-question');
+            const tapToSeeText = document.getElementById('tap-to-see');
+
+            if (!showingAnswer) {
+                flashcardContainer.classList.add('flipped');
+                answerElement.style.display = 'block'; // Mostra la risposta
+                questionElement.style.display = 'none'; // Nasconde la domanda
+                tapToSeeText.style.display = 'none'; // Nasconde il testo "Tap to see the answer"
+                showingAnswer = true;
+                document.getElementById('next-card-button').style.display = 'block';
+            } else {
+                flashcardContainer.classList.remove('flipped');
+                answerElement.style.display = 'none'; // Nasconde la risposta
+                questionElement.style.display = 'block'; // Mostra la domanda
+                tapToSeeText.style.display = 'block'; // Mostra di nuovo il testo "Tap to see the answer"
+                showingAnswer = false;
+            }
+        });
+
+        document.getElementById('next-card-button').addEventListener('click', () => {
+            currentIndex++;
+            if (currentIndex >= currentCards.length) {
+                alert('Hai completato tutte le flashcard! Ricominciamo dall\'inizio.');
+                currentIndex = 0;
+            }
+            displayCard();
+        });
+    </script>
+</body>
+</html>
