@@ -24,13 +24,16 @@
     height: 16px;
     border-radius: 8px;
     overflow: hidden;
+    margin-left: 80px;
+    margin-right: 80px;
+
 }
 
 .progress-bar {
     height: 100%;
     background-color: var(--primary);
-    width: 0%;
     transition: width 0.3s ease;
+    width: 0%;
 }
 
 .flashcard-container {
@@ -44,6 +47,8 @@
     cursor: pointer;
     height: 650px;
     perspective: 1000px;
+    margin-left: 100px;
+    margin-right: 100px;
 }
 
 .flashcard-inner {
@@ -148,14 +153,19 @@
 }
 
 .flashcard-actions {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+    justify-content: space-between;
+    pointer-events: none; /* Evita che i pulsanti interferiscano con il clic sulla flashcard */
 }
 
 .action-button {
-    padding: 14px 30px;
+    pointer-events: auto; /* Permette di cliccare sui pulsanti */
+    padding: 14px 20px;
     border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
@@ -164,18 +174,16 @@
     transition: all 0.2s;
 }
 
-.action-button:hover {
-    transform: translateY(-3px);
-}
-
 .action-button.unknown {
     background-color: var(--gray);
     color: var(--text);
+    margin-left: 20px;
 }
 
 .action-button.known {
     background-color: var(--primary);
     color: var(--background);
+    margin-right: 20px;
 }
 
 .action-button.unknown:hover {
@@ -238,6 +246,7 @@
                     <div class="set-name" id="set-name">Caricamento...</div>
                 </div>
                 <div class="flashcard-content question" id="flashcard-content-question">Caricamento...</div>
+                <div class="tap-to-see" id="tap-to-see">Tocca per vedere la risposta</div>
             </div>
             <div class="flashcard-back">
                 <div class="flashcard-content answer" id="flashcard-content-answer">Risposta...</div>
