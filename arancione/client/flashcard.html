@@ -177,13 +177,14 @@
 .action-button.unknown {
     background-color: var(--gray);
     color: var(--text);
-    margin-left: 20px;
+    margin-left: 90px;
+    
 }
 
 .action-button.known {
     background-color: var(--primary);
     color: var(--background);
-    margin-right: 20px;
+    margin-right: 90px;
 }
 
 .action-button.unknown:hover {
@@ -193,6 +194,52 @@
 
 .action-button.known:hover {
     background-color: #f5a867;
+}
+.flashcard-options {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .options-button {
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background-color: var(--primary);
+        color: var(--background);
+        transition: all 0.2s;
+    }
+
+    .options-button:hover {
+        background-color: #f5a867;
+    }
+
+.flashcard-difficulty {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    display: none;
+}
+
+.difficulty-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background-color: var(--gray);
+    color: var(--primary);
+    transition: all 0.2s;
+}
+
+.difficulty-button:hover {
+    background-color: #f5a867;
+    color: var(--gray);
 }
 
 /* Responsive */
@@ -255,8 +302,18 @@
     </div>
 
     <div class="flashcard-actions">
-        <button class="action-button unknown" id="unknown-button">✗ Non so</button>
-        <button class="action-button known" id="known-button">✓ So</button>
+        <button class="action-button unknown" id="unknown-button">✗</button>
+        <button class="action-button known" id="known-button">✓</button>
+    </div>
+    <div class="flashcard-options">
+    <button class="options-button" id="options-button">Mode: Classic</button>
+</div>
+
+    <div class="flashcard-difficulty">
+        <button class="difficulty-button easy" id="easy-button">Easy</button>
+        <button class="difficulty-button medium" id="medium-button">Medium</button>
+        <button class="difficulty-button hard" id="hard-button">Hard</button>
+        <button class="difficulty-button super-hard" id="super-hard-button">Super Hard</button>
     </div>
 
     <script>
@@ -336,6 +393,23 @@
             } catch (error) {
                 console.error('Errore:', error);
                 alert('Errore nel caricamento delle flashcard.');
+            }
+        }
+
+        async function loadRepetitionCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/repetition-cards`, {
+                    headers: { 'x-auth-token': localStorage.getItem('token') }
+                });
+
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard per ripetizione');
+
+                currentCards = await response.json();
+                currentIndex = 0;
+                displayCard();
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('Errore nel caricamento delle flashcard per ripetizione.');
             }
         }
 
@@ -423,6 +497,80 @@ document.getElementById('known-button').addEventListener('click', async () => {
     flashcardContainer.classList.remove('flipped');
 
     displayCard(); // Mostra la nuova flashcard
+}
+
+document.getElementById('easy-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'easy');
+    nextCard();
+});
+
+document.getElementById('medium-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'medium');
+    nextCard();
+});
+
+document.getElementById('hard-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'hard');
+    nextCard();
+});
+
+document.getElementById('super-hard-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'super-hard');
+    nextCard();
+});
+
+document.getElementById('easy-button').addEventListener('click', () => {
+    console.log('Easy button clicked');
+    // Aggiungi la logica per il pulsante Easy
+});
+
+document.getElementById('medium-button').addEventListener('click', () => {
+    console.log('Medium button clicked');
+    // Aggiungi la logica per il pulsante Medium
+});
+
+document.getElementById('hard-button').addEventListener('click', () => {
+    console.log('Hard button clicked');
+    // Aggiungi la logica per il pulsante Hard
+});
+
+document.getElementById('super-hard-button').addEventListener('click', () => {
+    console.log('Super Hard button clicked');
+    // Aggiungi la logica per il pulsante Super Hard
+});
+
+document.getElementById('options-button').addEventListener('click', async () => {
+    const optionsButton = document.getElementById('options-button');
+    if (optionsButton.textContent.includes('Classic')) {
+        optionsButton.textContent = 'Mode: Repetition';
+        optionsButton.style.backgroundColor = '#f5a867'; // Cambia colore
+        document.getElementById('unknown-button').style.display = 'none';
+        document.getElementById('known-button').style.display = 'none';
+        document.querySelector('.flashcard-difficulty').style.display = 'flex';
+        await loadRepetitionCards();
+    } else {
+        optionsButton.textContent = 'Mode: Classic';
+        optionsButton.style.backgroundColor = 'var(--primary)'; // Ripristina colore
+        document.getElementById('unknown-button').style.display = 'block';
+        document.getElementById('known-button').style.display = 'block';
+        document.querySelector('.flashcard-difficulty').style.display = 'none';
+        await loadCards();
+    }
+});
+
+async function updateRepetition(cardId, difficulty) {
+    try {
+        await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${cardId}/repetition`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': localStorage.getItem('token')
+            },
+            body: JSON.stringify({ difficulty })
+        });
+    } catch (error) {
+        console.error('Errore nell\'aggiornamento della prossima ripetizione:', error);
+    }
 }
     </script>
 </body>

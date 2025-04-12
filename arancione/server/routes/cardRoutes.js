@@ -73,6 +73,33 @@ router.get('/:deckId/sets/:setId/cards', auth, async (req, res) => {
   }
 });
 
+// Ottieni le flashcard per ripetizione
+router.get('/:deckId/sets/:setId/repetition-cards', auth, async (req, res) => {
+  try {
+    const { deckId, setId } = req.params;
+
+    // Verifica che il deck e il set esistano
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    const set = await Set.findById(setId);
+    if (!set || set.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Set not found or unauthorized' });
+    }
+
+    // Trova le flashcard ordinate per prossimaRipetizione
+    const cards = await Card.find({ set: setId })
+      .sort({ prossimaRipetizione: 1 }); // Ordina per prossimaRipetizione crescente
+
+    res.json(cards);
+  } catch (err) {
+    console.error('Errore nel caricamento delle flashcard per ripetizione:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Modifica una flashcard
 router.put('/:deckId/sets/:setId/cards/:cardId', auth, async (req, res) => {
   try {
@@ -144,6 +171,48 @@ router.delete('/:deckId/sets/:setId/cards/:cardId', auth, async (req, res) => {
 
   } catch (err) {
     console.error('Errore nell\'eliminazione della flashcard:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.put('/:deckId/sets/:setId/cards/:cardId/repetition', auth, async (req, res) => {
+  try {
+    const { deckId, setId, cardId } = req.params;
+    const { difficulty } = req.body;
+
+    // Trova la flashcard
+    const card = await Card.findById(cardId);
+    if (!card || card.set.toString() !== setId) {
+      return res.status(404).json({ message: 'Card not found or unauthorized' });
+    }
+
+    // Calcola la nuova prossimaRipetizione in base alla difficoltà
+    const now = new Date();
+    let nextRepetition;
+    switch (difficulty) {
+      case 'easy':
+        nextRepetition = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
+        break;
+      case 'medium':
+        nextRepetition = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12 ore
+        break;
+      case 'hard':
+        nextRepetition = new Date(now.getTime() + 60 * 60 * 1000); // 1 ora
+        break;
+      case 'super-hard':
+        nextRepetition = new Date(now.getTime() + 5 * 60 * 1000); // 5 minuti
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid difficulty' });
+    }
+
+    // Aggiorna la prossimaRipetizione
+    card.prossimaRipetizione = nextRepetition;
+    await card.save();
+
+    res.json(card);
+  } catch (err) {
+    console.error('Errore nell\'aggiornamento della prossima ripetizione:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
