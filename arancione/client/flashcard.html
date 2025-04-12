@@ -7,128 +7,247 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: var(--background);
-        }
+/* Stili specifici per la pagina flashcard */
+.progress-wrapper {
+    margin-bottom: 20px;
+}
 
-        .progress-bar-container {
-            width: 80%;
-            height: 20px;
-            background-color: var(--gray);
-            border-radius: 10px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
+.progress-text {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: var(--text);
+}
 
-        .progress-bar {
-            height: 100%;
-            background-color: var(--primary);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
+.progress-bar-container {
+    background-color: var(--gray);
+    height: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+}
 
-        .flashcard-container {
-            width: 80%;
-            max-width: 1600px;
-            background-color: var(--card-background);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 800px;
-            margin-top: 20px;
-            margin-bottom: 30px;
-            cursor: pointer;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            position: relative;
-        }
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary);
+    width: 0%;
+    transition: width 0.3s ease;
+}
 
-        .flashcard-container.flipped {
-            transform: rotateY(180deg);
-        }
+.flashcard-container {
+    background-color: var(--background);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    min-height: 350px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    height: 650px;
+    perspective: 1000px;
+}
 
-        .flashcard-content {
-            font-size: 34px;
-            font-weight: bold;
-            color: var(--text);
-            margin-bottom: 20px;
-            backface-visibility: hidden;
-            position: absolute;
-        }
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
 
-        .flashcard-content.answer {
-            transform: rotateY(180deg);
-        }
+.flashcard-container.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
 
-        .flashcard-actions {
-            display: flex;
-            gap: 10px;
-        }
+.flashcard-front,
+.flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px var(--shadow-color);
+}
 
-        .action-button {
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
+.flashcard-front {
+    background-color: var(--card-background);
+}
 
-        .show-answer {
-            background-color: var(--primary);
-            color: white;
-        }
+.flashcard-back {
+    background-color: var(--card-background);
+    color: var(--primary);
+    transform: rotateY(180deg);
+}
 
-        .next-card {
-            background-color: var(--success);
-            color: white;
-        }
+.flashcard-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    position: absolute;
+    top: 30px; /* Posiziona in alto */
+    left: 0;
+    padding: 0 30px; /* Aggiunge un po' di spazio ai lati */
+    z-index: 1;
+    backface-visibility: hidden;
+}
 
-        .progress-text {
-            font-size: 16px;
-            color: var(--text-light);
-            margin-bottom: 5px;
-        }
-       
-        .flashcard-container .tap-to-see {
-            position: absolute;
-            bottom: 10px;
-            font-size: 16px;
-            color: rgb(143, 143, 143);
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        }
-        .flashcard-container.flipped .tap-to-see {
-            opacity: 0;
-        }
+.deck-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary);
+    text-align: left;
+}
+
+.set-name {
+    font-size: 16px;
+    color: var(--text);
+    opacity: 0.8;
+    text-align: right;
+}
+
+.flashcard-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 24px;
+    font-weight: 500;
+    padding: 0 30px;
+    width: 100%;
+}
+
+.flashcard-content.question,
+.flashcard-content.answer {
+    display: none;
+}
+
+.flashcard-content.visible {
+    display: block;
+}
+
+.tap-to-see {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text);
+    opacity: 0.6;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.4; }
+}
+
+.flashcard-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.action-button {
+    padding: 14px 30px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.action-button:hover {
+    transform: translateY(-3px);
+}
+
+.action-button.unknown {
+    background-color: var(--gray);
+    color: var(--text);
+}
+
+.action-button.known {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+.action-button.unknown:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.action-button.known:hover {
+    background-color: #f5a867;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .flashcard-container {
+        min-height: 300px;
+    }
+
+    .flashcard-content {
+        font-size: 20px;
+        margin: 30px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .flashcard-container {
+        min-height: 250px;
+        padding: 20px;
+    }
+
+    .flashcard-content {
+        font-size: 18px;
+        margin: 20px 0;
+    }
+
+    .action-button {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    .flashcard-actions {
+        gap: 10px;
+    }
+}
+
     </style>
 </head>
 <body>
-    <div class="progress-text" id="progress-text">1 di 3</div>
-    <div class="progress-bar-container">
-        <div class="progress-bar" id="progress-bar"></div>
+    <div class="progress-wrapper">
+        <div class="progress-text" id="progress-text">1 di 3</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
     </div>
 
     <div class="flashcard-container" id="flashcard-container">
-        <div class="flashcard-content question" id="flashcard-content-question">Caricamento...</div>
-        <div class="flashcard-content answer" id="flashcard-content-answer">Risposta...</div>
-        <div class="tap-to-see" id="tap-to-see">Tap to see the answer</div>
+        <div class="flashcard-inner">
+            <div class="flashcard-front">
+                <div class="flashcard-header">
+                    <div class="deck-name" id="deck-name">Caricamento...</div>
+                    <div class="set-name" id="set-name">Caricamento...</div>
+                </div>
+                <div class="flashcard-content question" id="flashcard-content-question">Caricamento...</div>
+            </div>
+            <div class="flashcard-back">
+                <div class="flashcard-content answer" id="flashcard-content-answer">Risposta...</div>
+            </div>
+        </div>
     </div>
+
     <div class="flashcard-actions">
-        <button class="action-button next-card" id="next-card-button" style="display: none;">Prossima</button>
+        <button class="action-button unknown" id="unknown-button">✗ Non so</button>
+        <button class="action-button known" id="known-button">✓ So</button>
     </div>
 
     <script>
@@ -156,9 +275,43 @@
                 return;
             }
 
+            await loadDeckAndSetNames();
             await loadCards();
             displayCard();
         });
+
+        async function loadDeckAndSetNames() {
+            try {
+                // Recupera i dettagli del deck
+                const deckResponse = await fetch(`${API_URL}/decks/${currentDeckId}`, {
+                    headers: { 'x-auth-token': localStorage.getItem('token') }
+                });
+
+                if (!deckResponse.ok) {
+                    throw new Error('Errore nel caricamento del deck');
+                }
+
+                const deck = await deckResponse.json();
+                console.log('Deck:', deck); // Log per verificare i dati del deck
+                document.getElementById('deck-name').textContent = `${deck.subject || 'Titolo non disponibile'}`;
+
+                // Recupera i dettagli del set
+                const setResponse = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}`, {
+                    headers: { 'x-auth-token': localStorage.getItem('token') }
+                });
+
+                if (!setResponse.ok) {
+                    throw new Error('Errore nel caricamento del set');
+                }
+
+                const set = await setResponse.json();
+                console.log('Set:', set); // Log per verificare i dati del set
+                document.getElementById('set-name').textContent = `${set.name}`;
+            } catch (error) {
+                console.error('Errore nel caricamento di deck o set:', error);
+                alert('Errore nel caricamento dei dettagli del deck o del set.');
+            }
+        }
 
         async function loadCards() {
             try {
@@ -178,57 +331,85 @@
         }
 
         function displayCard() {
-            if (currentCards.length === 0) {
-                document.getElementById('flashcard-content-question').textContent = 'Nessuna flashcard disponibile.';
-                document.getElementById('next-card-button').style.display = 'none';
-                return;
-            }
+    if (currentCards.length === 0) {
+        document.getElementById('flashcard-content-question').textContent = 'Nessuna flashcard disponibile.';
+        document.getElementById('flashcard-content-answer').textContent = '';
+        document.getElementById('unknown-button').style.display = 'none';
+        document.getElementById('known-button').style.display = 'none';
+        return;
+    }
 
-            const card = currentCards[currentIndex];
-            document.getElementById('flashcard-content-question').textContent = card.question;
-            document.getElementById('flashcard-content-answer').textContent = card.answer;
-            document.getElementById('flashcard-content-answer').style.display = 'none';
-            document.getElementById('next-card-button').style.display = 'none';
-            updateProgressBar();
-            showingAnswer = false;
-        }
+    const card = currentCards[currentIndex];
+    document.getElementById('flashcard-content-question').textContent = card.question;
+    document.getElementById('flashcard-content-answer').textContent = card.answer;
+
+    document.getElementById('flashcard-content-question').classList.add('visible');
+    document.getElementById('flashcard-content-answer').classList.remove('visible');
+    document.getElementById('tap-to-see').style.display = 'block';
+    showingAnswer = false;
+    updateProgressBar();
+}
 
         function updateProgressBar() {
-            const progress = ((currentIndex + 1) / currentCards.length) * 100;
-            document.getElementById('progress-bar').style.width = `${progress}%`;
-            document.getElementById('progress-text').textContent = `${currentIndex + 1} di ${currentCards.length}`;
+            if (currentCards.length > 0) {
+                const progress = ((currentIndex + 1) / currentCards.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                document.getElementById('progress-text').textContent = `${currentIndex + 1} di ${currentCards.length}`;
+            } else {
+                document.getElementById('progress-bar').style.width = '0%';
+                document.getElementById('progress-text').textContent = '0 di 0';
+            }
         }
 
         document.getElementById('flashcard-container').addEventListener('click', () => {
-            const flashcardContainer = document.getElementById('flashcard-container');
-            const answerElement = document.getElementById('flashcard-content-answer');
-            const questionElement = document.getElementById('flashcard-content-question');
-            const tapToSeeText = document.getElementById('tap-to-see');
+    const flashcardContainer = document.getElementById('flashcard-container');
+    const questionContent = document.getElementById('flashcard-content-question');
+    const answerContent = document.getElementById('flashcard-content-answer');
 
-            if (!showingAnswer) {
-                flashcardContainer.classList.add('flipped');
-                answerElement.style.display = 'block'; // Mostra la risposta
-                questionElement.style.display = 'none'; // Nasconde la domanda
-                tapToSeeText.style.display = 'none'; // Nasconde il testo "Tap to see the answer"
-                showingAnswer = true;
-                document.getElementById('next-card-button').style.display = 'block';
-            } else {
-                flashcardContainer.classList.remove('flipped');
-                answerElement.style.display = 'none'; // Nasconde la risposta
-                questionElement.style.display = 'block'; // Mostra la domanda
-                tapToSeeText.style.display = 'block'; // Mostra di nuovo il testo "Tap to see the answer"
-                showingAnswer = false;
-            }
+    flashcardContainer.classList.toggle('flipped');
+    if (flashcardContainer.classList.contains('flipped')) {
+        questionContent.classList.remove('visible');
+        answerContent.classList.add('visible');
+    } else {
+        answerContent.classList.remove('visible');
+        questionContent.classList.add('visible');
+    }
+});
+
+        document.getElementById('unknown-button').addEventListener('click', async () => {
+            await updateCardKnowledge('no');
+            nextCard();
         });
 
-        document.getElementById('next-card-button').addEventListener('click', () => {
+        document.getElementById('known-button').addEventListener('click', async () => {
+            await updateCardKnowledge('yes');
+            nextCard();
+        });
+
+        async function updateCardKnowledge(known) {
+            const card = currentCards[currentIndex];
+            try {
+                await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${card._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ known })
+                });
+            } catch (error) {
+                console.error('Errore nell\'aggiornamento dello stato della flashcard:', error);
+            }
+        }
+
+        function nextCard() {
             currentIndex++;
             if (currentIndex >= currentCards.length) {
                 alert('Hai completato tutte le flashcard! Ricominciamo dall\'inizio.');
                 currentIndex = 0;
             }
-            displayCard();
-        });
+            displayCard(); // Mostra la nuova flashcard
+        }
     </script>
 </body>
 </html>

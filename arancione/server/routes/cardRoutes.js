@@ -28,7 +28,8 @@ router.post('/:deckId/sets/:setId/cards', auth, async (req, res) => {
       question,
       answer,
       set: set._id,
-      deck: deck._id
+      deck: deck._id,
+      known: 'no' // Imposta il valore predefinito
     });
 
     await newCard.save();
@@ -76,7 +77,7 @@ router.get('/:deckId/sets/:setId/cards', auth, async (req, res) => {
 router.put('/:deckId/sets/:setId/cards/:cardId', auth, async (req, res) => {
   try {
     const { deckId, setId, cardId } = req.params;
-    const { question, answer } = req.body;
+    const { question, answer, known } = req.body;
 
     // Verifica che il deck esista e che l'utente sia autorizzato
     const deck = await Deck.findById(deckId);
@@ -96,12 +97,13 @@ router.put('/:deckId/sets/:setId/cards/:cardId', auth, async (req, res) => {
       return res.status(404).json({ message: 'Card not found or unauthorized' });
     }
 
-    card.question = question || card.question;
-    card.answer = answer || card.answer;
+    if (question) card.question = question;
+    if (answer) card.answer = answer;
+    if (known) card.known = known; // Aggiorna il campo "known"
+
     await card.save();
 
     res.json(card);
-
   } catch (err) {
     console.error('Errore nella modifica della flashcard:', err.message);
     res.status(500).json({ message: 'Server error' });
