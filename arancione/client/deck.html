@@ -188,6 +188,37 @@
             font-size: 15px;
             margin-bottom: 16px;
         }
+        .fixed-container {
+            grid-column: 3; /* Posiziona nella terza colonna */
+            grid-row: 1;    /* Posiziona nella prima riga */
+            background-color: var(--card-background);
+            border: 2px dashed var(--text-light); /* Stile visivo per distinguere */
+            border-radius: 16px;
+            height: 150px; /* Altezza fissa */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        .study-unknown-button {
+            background-color: var(--primary);
+            color: var(--background);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .study-unknown-button:hover {
+            background-color: #f5a867;
+        }
         
         
     </style>
@@ -251,6 +282,13 @@
     <!-- Sets Container -->
     <div class="sets-container" id="sets-container">
         <div class="no-sets">No sets available. Add your first set!</div>
+        <!-- Nuovo container vuoto per la terza flashcard -->
+        <div class="set-card fixed-container" id="empty-container">
+            <button id="study-unknown-button" class="study-unknown-button">
+                <i class="fas fa-brain"></i> Studia quelle che non sai
+            </button>
+        </div>
+        
     </div>
     
     <!-- Add Set Modal -->
@@ -369,20 +407,34 @@
         // Visualizza i set
         function displaySets(sets) {
             const container = document.getElementById('sets-container');
-            container.innerHTML = '';
+            container.innerHTML = ''; // Svuota il contenitore
 
+            // Aggiungi il pulsante "Studia quelle che non sai"
+            const studyUnknownButton = document.createElement('div');
+            studyUnknownButton.className = 'set-card fixed-container';
+            studyUnknownButton.innerHTML = `
+                <button id="study-unknown-button" class="study-unknown-button">
+                    <i class="fas fa-brain"></i> Studia quelle che non sai
+                </button>
+            `;
+            container.appendChild(studyUnknownButton);
+
+            // Aggiungi i set
             if (!sets || sets.length === 0) {
-                container.innerHTML = '<div class="no-sets">No sets available. Add your first set!!</div>';
+                const noSetsMessage = document.createElement('div');
+                noSetsMessage.className = 'no-sets';
+                noSetsMessage.textContent = 'No sets available. Add your first set!';
+                container.appendChild(noSetsMessage);
                 return;
             }
 
-            sets.forEach(set => {
+            sets.forEach((set) => {
                 const setElement = document.createElement('div');
                 setElement.className = 'set-card';
                 setElement.dataset.setId = set._id;
                 setElement.innerHTML = `
                     <div class="set-actions">
-                        <div class="action-button edit" title="Delete set">
+                        <div class="action-button edit" title="Edit set">
                             <i class="fas fa-edit"></i>
                         </div>
                         <div class="action-button delete" title="Delete set">
@@ -410,8 +462,14 @@
                 setElement.addEventListener('click', () => {
                     window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
                 });
+
                 container.appendChild(setElement);
             });
+
+            // Reimposta l'event listener per il pulsante "Studia quelle che non sai"
+            document.getElementById('study-unknown-button').addEventListener('click', () => {
+            window.location.href = `flashcard.html?deckId=${currentDeckId}&mode=unknown`;
+        });
         }
 
         // Funzione per eliminare un set
@@ -569,6 +627,8 @@
                 profileDropdown.style.display = 'none';
             }
         });
+
+            
         }
     </script>
 </body>

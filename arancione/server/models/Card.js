@@ -26,6 +26,10 @@ const cardSchema = new mongoose.Schema({
     enum: ['yes', 'no'],
     default: 'no' // Default value
   },
+  prossimaRipetizione: {
+    type: Date,
+    default: Date.now // Imposta la prossima ripetizione come ora corrente per default
+  },
   createdAt: {
     type: Date,
     default: Date.now
