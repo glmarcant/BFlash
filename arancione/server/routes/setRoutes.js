@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Set = require('../models/Set');
 const Deck = require('../models/Deck');
+const Card = require('../models/Card');
 
 // Crea un nuovo set in un deck
 router.post('/:deckId/sets', auth, async (req, res) => {
@@ -116,6 +117,44 @@ router.put('/:deckId/sets/:setId', auth, async (req, res) => {
 
     res.json(set);
   } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+// Aggiungi questa route a setRoutes.js
+router.get('/:deckId/sets/:setId/stats', auth, async (req, res) => {
+  try {
+    const { deckId, setId } = req.params;
+
+    // Verifica che il deck esista e che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Verifica che il set esista e appartenga al deck
+    const set = await Set.findById(setId);
+    if (!set || set.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Set not found or unauthorized' });
+    }
+
+    // Calcola le statistiche
+    const knownCount = await Card.countDocuments({ 
+      set: setId, 
+      known: 'yes' 
+    });
+    
+    const unknownCount = await Card.countDocuments({ 
+      set: setId, 
+      known: 'no' 
+    });
+
+    res.json({
+      known: knownCount,
+      unknown: unknownCount
+    });
+
+  } catch (err) {
+    console.error('Errore nel caricamento delle statistiche:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
