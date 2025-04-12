@@ -21,6 +21,11 @@ const cardSchema = new mongoose.Schema({
     ref: 'Deck',
     required: true
   },
+  known: {
+    type: String,
+    enum: ['yes', 'no'],
+    default: 'no' // Default value
+  },
   createdAt: {
     type: Date,
     default: Date.now
