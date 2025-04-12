@@ -325,31 +325,47 @@
         let showingAnswer = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            currentDeckId = urlParams.get('deckId');
-            currentSetId = urlParams.get('setId');
+    const urlParams = new URLSearchParams(window.location.search);
+    currentDeckId = urlParams.get('deckId');
+    currentSetId = urlParams.get('setId'); // Questo sarà null se non è passato
+    const mode = urlParams.get('mode'); // Controlla se è "unknown"
 
-            if (!currentDeckId || !currentSetId) {
-                alert('ID mazzo o set mancante!');
-                window.location.href = 'index.html';
-                return;
-            }
+    if (!currentDeckId) {
+        alert('ID mazzo mancante!');
+        window.location.href = 'index.html';
+        return;
+    }
 
+    try {
+        if (mode === 'unknown') {
+            // Carica solo le flashcard non conosciute del deck
+            await loadUnknownCards();
+        } else if (currentSetId) {
+            // Carica le flashcard del set specifico
             await loadDeckAndSetNames();
             await loadCards();
-            displayCard();
-        });
+        } else {
+            alert('Parametro non valido!');
+            window.location.href = 'index.html';
+        }
 
-        async function loadDeckAndSetNames() {
+        displayCard();
+    } catch (error) {
+        console.error('Errore durante il caricamento delle flashcard:', error);
+        alert('Errore durante il caricamento delle flashcard.');
+    }
+});
+
+async function loadDeckAndSetNames(deckId, setId) {
             try {
                 // Recupera i dettagli del deck
-                const deckResponse = await fetch(`${API_URL}/decks/${currentDeckId}`, {
+                const deckResponse = await fetch(`${API_URL}/decks/${deckId}`, {
                     headers: { 'x-auth-token': localStorage.getItem('token') }
                 });
 
@@ -358,24 +374,28 @@
                 }
 
                 const deck = await deckResponse.json();
-                console.log('Deck:', deck); // Log per verificare i dati del deck
-                document.getElementById('deck-name').textContent = `${deck.subject || 'Titolo non disponibile'}`;
+                document.getElementById('deck-name').textContent = deck.subject || 'Titolo non disponibile';
 
-                // Recupera i dettagli del set
-                const setResponse = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}`, {
-                    headers: { 'x-auth-token': localStorage.getItem('token') }
-                });
+                // Recupera i dettagli del set solo se abbiamo un setId
+                if (setId) {
+                    const setResponse = await fetch(`${API_URL}/sets/${deckId}/sets/${setId}`, {
+                        headers: { 'x-auth-token': localStorage.getItem('token') }
+                    });
 
-                if (!setResponse.ok) {
-                    throw new Error('Errore nel caricamento del set');
+                    if (!setResponse.ok) {
+                        throw new Error('Errore nel caricamento del set');
+                    }
+
+                    const set = await setResponse.json();
+                    document.getElementById('set-name').textContent = set.name || 'Set non disponibile';
+                } else {
+                    document.getElementById('set-name').textContent = 'Tutte le carte';
                 }
-
-                const set = await setResponse.json();
-                console.log('Set:', set); // Log per verificare i dati del set
-                document.getElementById('set-name').textContent = `${set.name}`;
             } catch (error) {
                 console.error('Errore nel caricamento di deck o set:', error);
-                alert('Errore nel caricamento dei dettagli del deck o del set.');
+                // Mostra valori di default in caso di errore
+                document.getElementById('deck-name').textContent = 'Deck non disponibile';
+                document.getElementById('set-name').textContent = 'Set non disponibile';
             }
         }
 
@@ -413,25 +433,50 @@
             }
         }
 
+        async function loadUnknownCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/unknown-cards`, {
+                    headers: { 'x-auth-token': localStorage.getItem('token') }
+                });
+
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard non conosciute');
+
+                currentCards = await response.json();
+                
+                // Se abbiamo almeno una card, carichiamo i nomi del deck e del set
+                if (currentCards.length > 0) {
+                    await loadDeckAndSetNames(currentCards[0].deck, currentCards[0].set);
+                }
+            } catch (error) {
+                console.error('Errore nel caricamento delle flashcard non conosciute:', error);
+                alert('Errore nel caricamento delle flashcard non conosciute.');
+            }
+        }
+
         function displayCard() {
-    if (currentCards.length === 0) {
-        document.getElementById('flashcard-content-question').textContent = 'Nessuna flashcard disponibile.';
-        document.getElementById('flashcard-content-answer').textContent = '';
-        document.getElementById('unknown-button').style.display = 'none';
-        document.getElementById('known-button').style.display = 'none';
-        return;
-    }
+            if (currentCards.length === 0) {
+                document.getElementById('flashcard-content-question').textContent = 'Nessuna flashcard disponibile.';
+                document.getElementById('flashcard-content-answer').textContent = '';
+                document.getElementById('unknown-button').style.display = 'none';
+                document.getElementById('known-button').style.display = 'none';
+                document.getElementById('deck-name').textContent = 'Nessun deck';
+                document.getElementById('set-name').textContent = 'Nessun set';
+                return;
+            }
 
-    const card = currentCards[currentIndex];
-    document.getElementById('flashcard-content-question').textContent = card.question;
-    document.getElementById('flashcard-content-answer').textContent = card.answer;
+            const card = currentCards[currentIndex];
+            document.getElementById('flashcard-content-question').textContent = card.question;
+            document.getElementById('flashcard-content-answer').textContent = card.answer;
 
-    document.getElementById('flashcard-content-question').classList.add('visible');
-    document.getElementById('flashcard-content-answer').classList.remove('visible');
-    document.getElementById('tap-to-see').style.display = 'block';
-    showingAnswer = false;
-    updateProgressBar();
-}
+            // Carica i nomi del deck e del set per la card corrente
+            loadDeckAndSetNames(card.deck, card.set);
+
+            document.getElementById('flashcard-content-question').classList.add('visible');
+            document.getElementById('flashcard-content-answer').classList.remove('visible');
+            document.getElementById('tap-to-see').style.display = 'block';
+            showingAnswer = false;
+            updateProgressBar();
+        }
 
         function updateProgressBar() {
             if (currentCards.length > 0) {
@@ -472,7 +517,11 @@ document.getElementById('known-button').addEventListener('click', async () => {
         async function updateCardKnowledge(known) {
             const card = currentCards[currentIndex];
             try {
-                await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${card._id}`, {
+                const url = currentSetId 
+                    ? `${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${card._id}`
+                    : `${API_URL}/sets/${currentDeckId}/cards/${card._id}`;
+                    
+                await fetch(url, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -560,7 +609,11 @@ document.getElementById('options-button').addEventListener('click', async () => 
 
 async function updateRepetition(cardId, difficulty) {
     try {
-        await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${cardId}/repetition`, {
+        const url = currentSetId 
+            ? `${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${cardId}/repetition`
+            : `${API_URL}/sets/${currentDeckId}/cards/${cardId}/repetition`;
+            
+        await fetch(url, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

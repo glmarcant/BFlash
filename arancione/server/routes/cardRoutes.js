@@ -217,4 +217,102 @@ router.put('/:deckId/sets/:setId/cards/:cardId/repetition', auth, async (req, re
   }
 });
 
+router.get('/:deckId/unknown-cards', auth, async (req, res) => {
+  try {
+    const { deckId } = req.params;
+
+    // Verifica che il deck esista e che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Recupera le flashcard con known: "no"
+    const cards = await Card.find({ deck: deckId, known: 'no' }).sort({ createdAt: -1 });
+
+    res.json(cards);
+  } catch (err) {
+    console.error('Errore nel caricamento delle flashcard non conosciute:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+// Aggiorna lo stato "known" di una flashcard (senza bisogno di setId)
+router.put('/:deckId/cards/:cardId', auth, async (req, res) => {
+  try {
+    const { deckId, cardId } = req.params;
+    const { question, answer, known } = req.body;
+
+    // Verifica che il deck esista e che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Trova e aggiorna la flashcard
+    const card = await Card.findById(cardId);
+    if (!card || card.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Card not found or unauthorized' });
+    }
+
+    if (question) card.question = question;
+    if (answer) card.answer = answer;
+    if (known) card.known = known;
+
+    await card.save();
+    res.json(card);
+  } catch (err) {
+    console.error('Errore nella modifica della flashcard:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Aggiorna la prossima ripetizione (senza bisogno di setId)
+router.put('/:deckId/cards/:cardId/repetition', auth, async (req, res) => {
+  try {
+    const { deckId, cardId } = req.params;
+    const { difficulty } = req.body;
+
+    // Verifica che il deck esista e che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Trova la flashcard
+    const card = await Card.findById(cardId);
+    if (!card || card.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Card not found or unauthorized' });
+    }
+
+    // Calcola la nuova prossimaRipetizione in base alla difficoltà
+    const now = new Date();
+    let nextRepetition;
+    switch (difficulty) {
+      case 'easy':
+        nextRepetition = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
+        break;
+      case 'medium':
+        nextRepetition = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12 ore
+        break;
+      case 'hard':
+        nextRepetition = new Date(now.getTime() + 60 * 60 * 1000); // 1 ora
+        break;
+      case 'super-hard':
+        nextRepetition = new Date(now.getTime() + 5 * 60 * 1000); // 5 minuti
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid difficulty' });
+    }
+
+    // Aggiorna la prossimaRipetizione
+    card.prossimaRipetizione = nextRepetition;
+    await card.save();
+
+    res.json(card);
+  } catch (err) {
+    console.error('Errore nell\'aggiornamento della prossima ripetizione:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
