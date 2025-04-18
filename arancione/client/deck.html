@@ -247,12 +247,42 @@
     box-sizing: border-box;
 }
 
+/* Stili per la navigazione del carosello */
+.carousel-arrow {
+    position: absolute;
+    bottom: 10px; /* Cambiato da top:50% a bottom:10px */
+    width: 30px;
+    height: 30px;
+    background-color: var(--card-background);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.7;
+    transform: none; /* Rimosso translateY(-50%) */
+}
+
+.carousel-arrow:hover {
+    opacity: 1;
+    background-color: var(--sidebar-hover);
+}
+
+.carousel-arrow.left {
+    left: 35%; /* Posizionato al centro-sinistra */
+}
+
+.carousel-arrow.right {
+    right: 35%; /* Posizionato al centro-destra */
+}
+
 .carousel-nav {
     position: absolute;
     bottom: 10px;
     left: 0;
     right: 0;
-    display: flex;
+    display: none; /* Nascondiamo i pallini per evitare sovrapposizioni */
     justify-content: center;
     gap: 8px;
 }
@@ -269,35 +299,6 @@
 .carousel-dot.active {
     background-color: var(--primary);
     transform: scale(1.2);
-}
-
-.carousel-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 30px;
-    height: 30px;
-    background-color: var(--card-background);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    opacity: 0.7;
-}
-
-.carousel-arrow:hover {
-    opacity: 1;
-    background-color: var(--sidebar-hover);
-}
-
-.carousel-arrow.left {
-    left: 10px;
-}
-
-.carousel-arrow.right {
-    right: 10px;
 }
 
 .slide-icon {
@@ -417,7 +418,7 @@
         <div class="set-card fixed-container">
             <div class="carousel-container">
                 <div class="carousel-arrow left" id="carousel-prev">
-                    <i class="fas fa-chevron-left"></i>
+                    <i class="fa-solid fa-arrow-left"></i>
                 </div>
                 <div class="carousel-slides" id="carousel-slides">
                     <!-- Slide 1: Studia quelle che non sai -->
@@ -458,7 +459,7 @@
                     </div>
                 </div>
                 <div class="carousel-arrow right" id="carousel-next">
-                    <i class="fas fa-chevron-right"></i>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </div>
                 <div class="carousel-nav">
                     <div class="carousel-dot active" data-index="0"></div>
@@ -513,7 +514,7 @@
 
     <script>
         // API Base URL
-        const API_URL = 'http://localhost:5050/api';
+        const API_URL = '/api';
         let currentDeckId = '';
         let currentSets = [];
         let currentEditSetId = null;

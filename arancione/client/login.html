@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -200,7 +199,7 @@
         });
 
         // API Base URL
-        const API_URL = 'http://localhost:5050/api';
+        const API_URL = '/api';
 
         // Handle login submission
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -253,24 +252,48 @@
             document.getElementById('registerPasswordError').style.display = 'none';
             document.getElementById('registerConfirmPasswordError').style.display = 'none';
             
-            const username = document.getElementById('registerUsername').value;
-            const email = document.getElementById('registerEmail').value;
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('registerConfirmPassword').value;
-            
+
             // Client-side validation
-            if (password !== confirmPassword) {
-                document.getElementById('registerConfirmPasswordError').textContent = 'Passwords don\'t match';
-                document.getElementById('registerConfirmPasswordError').style.display = 'block';
-                return;
+            let hasError = false;
+
+            if (!username) {
+                document.getElementById('registerUsernameError').textContent = 'Username is required';
+                document.getElementById('registerUsernameError').style.display = 'block';
+                hasError = true;
             }
-            
-            if (password.length < 6) {
+
+            if (!email) {
+                document.getElementById('registerEmailError').textContent = 'Email is required';
+                document.getElementById('registerEmailError').style.display = 'block';
+                hasError = true;
+            } else if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+                document.getElementById('registerEmailError').textContent = 'Invalid email format';
+                document.getElementById('registerEmailError').style.display = 'block';
+                hasError = true;
+            }
+
+            if (!password) {
+                document.getElementById('registerPasswordError').textContent = 'Password is required';
+                document.getElementById('registerPasswordError').style.display = 'block';
+                hasError = true;
+            } else if (password.length < 6) {
                 document.getElementById('registerPasswordError').textContent = 'Password must be at least 6 characters';
                 document.getElementById('registerPasswordError').style.display = 'block';
-                return;
+                hasError = true;
             }
-            
+
+            if (password !== confirmPassword) {
+                document.getElementById('registerConfirmPasswordError').textContent = 'Passwords do not match';
+                document.getElementById('registerConfirmPasswordError').style.display = 'block';
+                hasError = true;
+            }
+
+            if (hasError) return;
+
             try {
                 const response = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
@@ -279,25 +302,37 @@
                     },
                     body: JSON.stringify({ username, email, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
-                    if (data.message.includes('User already exists')) {
-                        document.getElementById('registerEmailError').textContent = 'Email already registered';
-                        document.getElementById('registerEmailError').style.display = 'block';
+                    if (data.errors) {
+                        // Handle specific validation errors from the server
+                        data.errors.forEach(error => {
+                            if (error.param === 'username') {
+                                document.getElementById('registerUsernameError').textContent = error.msg;
+                                document.getElementById('registerUsernameError').style.display = 'block';
+                            } else if (error.param === 'email') {
+                                document.getElementById('registerEmailError').textContent = error.msg;
+                                document.getElementById('registerEmailError').style.display = 'block';
+                            } else if (error.param === 'password') {
+                                document.getElementById('registerPasswordError').textContent = error.msg;
+                                document.getElementById('registerPasswordError').style.display = 'block';
+                            }
+                        });
                     } else {
+                        // General error message
                         document.getElementById('registerError').textContent = data.message || 'Registration error';
                         document.getElementById('registerError').style.display = 'block';
                     }
                     return;
                 }
-                
+
                 // Registration successful - save token and redirect
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 window.location.href = 'index.html';
-                
+
             } catch (error) {
                 document.getElementById('registerError').textContent = 'Server connection error';
                 document.getElementById('registerError').style.display = 'block';

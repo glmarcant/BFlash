@@ -1,4 +1,3 @@
-// filepath: /workspaces/BFlash/arancione/server/routes/authRoutes.js
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -10,10 +9,16 @@ router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // Verifica se l'utente esiste già
+    // Verifica se l'email esiste già
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'Email is already in use' });
+    }
+
+    // Verifica se lo username esiste già
+    user = await User.findOne({ username });
+    if (user) {
+      return res.status(400).json({ message: 'Username is already taken' });
     }
 
     // Crea nuovo utente
@@ -22,6 +27,10 @@ router.post('/register', async (req, res) => {
       email,
       password
     });
+
+    // Hash della password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
 
     await user.save();
 
