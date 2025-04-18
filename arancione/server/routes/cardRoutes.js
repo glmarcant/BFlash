@@ -265,7 +265,26 @@ router.put('/:deckId/cards/:cardId', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// Ottieni tutte le flashcard di un deck
+router.get('/:deckId/cards', auth, async (req, res) => {
+  try {
+    const { deckId } = req.params;
 
+    // Verifica che il deck esista e che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Trova tutte le flashcard del deck
+    const cards = await Card.find({ deck: deckId }).sort({ createdAt: -1 });
+    res.json(cards);
+
+  } catch (err) {
+    console.error('Errore nel caricamento delle flashcard del deck:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 // Aggiorna la prossima ripetizione (senza bisogno di setId)
 router.put('/:deckId/cards/:cardId/repetition', auth, async (req, res) => {
   try {
@@ -311,6 +330,27 @@ router.put('/:deckId/cards/:cardId/repetition', auth, async (req, res) => {
     res.json(card);
   } catch (err) {
     console.error('Errore nell\'aggiornamento della prossima ripetizione:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+// Ottieni le flashcard per ripetizione di un intero deck
+router.get('/:deckId/repetition-cards', auth, async (req, res) => {
+  try {
+    const { deckId } = req.params;
+
+    // Verifica che il deck esista e che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Trova le flashcard ordinate per prossimaRipetizione
+    const cards = await Card.find({ deck: deckId })
+      .sort({ prossimaRipetizione: 1 }); // Ordina per prossimaRipetizione crescente
+
+    res.json(cards);
+  } catch (err) {
+    console.error('Errore nel caricamento delle flashcard per ripetizione:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
