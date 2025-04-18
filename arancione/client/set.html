@@ -74,39 +74,46 @@
             margin-top: 30px;
         }
         
-        .card-item {
-            background-color: var(--card-background);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
+            .card-item {
+                background-color: var(--card-background);
+                border-radius: 16px;
+                padding: 20px;
+                box-shadow: 0 4px 12px var(--shadow-color);
+                cursor: pointer;
+                transition: all 0.2s;
+                position: relative;
         
-        .card-item:hover {
-            transform: translateY(-5px);
-        }
+                /* Centrare il contenuto */
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                height: 200px; /* Altezza fissa per uniformità */
+            }
         
-        .card-item h3 {
-            margin: 0;
-            font-size: 18px;
-            color: var(--text);
-        }
+            .card-item h3 {
+                margin: 0;
+                font-size: 18px;
+                color: var(--text);
+                text-align: center;
+                flex-grow: 1; /* Permette al titolo di occupare lo spazio centrale */
+                display: flex;
+                align-items: center; /* Centra verticalmente il testo */
+                justify-content: center; /* Centra orizzontalmente il testo */
+            }
         
-        .card-item p {
-            margin: 10px 0 0;
-            font-size: 14px;
-            color: var(--text-light);
-        }
+            .card-item p {
+                display: none; /* Nascondi il testo aggiuntivo */
+            }
         
-        .card-actions {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 8px;
-        }
+            .card-actions {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                display: flex;
+                gap: 8px;
+            }
 
         .card-actions .action-button {
             width: 32px;
@@ -215,14 +222,6 @@
             margin-top: 20px;
         }
         
-        .study-button {
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
         
         .show-answer {
             background-color: var(--primary);
@@ -293,8 +292,9 @@
         </div>
         <h1 class="set-title" id="set-title">Set</h1>
         <div class="set-actions">
-            <div class="action-button" id="study-button" title="Studia">
-                <i class="fas fa-book"></i>
+            
+            <div class="action-button toggle-answer-button" id="toggle-answer-button" title="Mostra/Nascondi risposte">
+                <i class="fas fa-eye"></i>
             </div>
             <div class="action-button" id="edit-button" title="Modifica set">
                 <i class="fas fa-edit"></i>
@@ -365,20 +365,7 @@
         </div>
     </div>
     
-    <!-- Study Modal -->
-    <div class="modal" id="study-modal" style="display: none;">
-        <div class="study-modal-content">
-            <span class="close-modal">&times;</span>
-            <h2 id="study-title">Modalità studio</h2>
-            <div class="card-content" id="card-content">
-                <p id="card-text">Caricamento...</p>
-            </div>
-            <div class="study-actions">
-                <button class="study-button show-answer" id="show-answer-button">Mostra risposta</button>
-                <button class="study-button next-card" id="next-card-button" style="display: none;">Prossima flashcard</button>
-            </div>
-        </div>
-    </div>
+    
 
     <div class="study-set-container">
         <button class="study-set-button" id="study-set-button">Study set</button>
@@ -666,39 +653,11 @@
                 }
             });
             
-            // Pulsante modalità studio
-            document.getElementById('study-button').addEventListener('click', () => {
-                if (currentCards.length === 0) {
-                    alert('Non ci sono flashcard da studiare in questo set!');
-                    return;
-                }
-                
-                studyModeIndex = 0;
-                showingAnswer = false;
-                startStudySession();
-            });
             
-            // Mostra risposta nella modalità studio
-            document.getElementById('show-answer-button').addEventListener('click', () => {
-                if (showingAnswer) return;
-                
-                document.getElementById('card-text').textContent = currentCards[studyModeIndex].answer;
-                document.getElementById('show-answer-button').style.display = 'none';
-                document.getElementById('next-card-button').style.display = 'block';
-                showingAnswer = true;
-            });
             
-            // Prossima flashcard nella modalità studio
-            document.getElementById('next-card-button').addEventListener('click', () => {
-                studyModeIndex++;
-                if (studyModeIndex >= currentCards.length) {
-                    studyModeIndex = 0;
-                    alert('Hai completato tutte le flashcard! Ricominciamo dall\'inizio.');
-                }
-                
-                showingAnswer = false;
-                startStudySession();
-            });
+            
+            
+            
             
             // Chiudi modali
             document.querySelectorAll('.close-modal').forEach(btn => {
@@ -706,7 +665,6 @@
                     document.getElementById('add-card-modal').style.display = 'none';
                     document.getElementById('edit-card-modal').style.display = 'none';
                     document.getElementById('delete-modal').style.display = 'none';
-                    document.getElementById('study-modal').style.display = 'none';
                 });
             });
             
@@ -745,15 +703,27 @@
                 // Reindirizza alla pagina flashcard.html con i parametri deckId e setId
                 window.location.href = `flashcard.html?deckId=${deckId}&setId=${setId}`;
             });
+
+            // Pulsante mostra/nascondi risposte
+            document.getElementById('toggle-answer-button').addEventListener('click', () => {
+                const answers = document.querySelectorAll('.card-item p');
+                const icon = document.querySelector('#toggle-answer-button i');
+
+                answers.forEach(answer => {
+                    if (answer.style.display === 'none' || answer.style.display === '') {
+                        answer.style.display = 'block'; // Mostra la risposta
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        answer.style.display = 'none'; // Nascondi la risposta
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
         }
         
-        // Avvia una sessione di studio
-        function startStudySession() {
-            document.getElementById('study-modal').style.display = 'flex';
-            document.getElementById('card-text').textContent = currentCards[studyModeIndex].question;
-            document.getElementById('show-answer-button').style.display = 'block';
-            document.getElementById('next-card-button').style.display = 'none';
-        }
+        
     </script>
 </body>
 </html>

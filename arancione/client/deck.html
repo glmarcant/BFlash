@@ -441,9 +441,7 @@
         </div>
         <h1 class="deck-title" id="deck-title"></h1>
         <div class="deck-actions">
-            <div class="action-button" id="study-button" title="Study">
-                <i class="fas fa-book"></i>
-            </div>
+            
             <div class="action-button" id="edit-button" title="Edit deck">
                 <i class="fas fa-edit"></i>
             </div>
@@ -473,7 +471,7 @@
             </div>
             <div class="slide-title">Concentrati sulle tue difficoltà</div>
             <div class="slide-description">
-                Rivedi le flashcard che non sai e migliora le tue conoscenze.
+                Rivedi le flashcard che non sai di questo deck  e migliora le tue conoscenze.
             </div>
             <div class="button-container">
                 <button class="study-unknown-button">
@@ -663,14 +661,6 @@ dots.forEach(dot => {
         setElement.className = 'set-card';
         setElement.dataset.setId = set._id;
         setElement.innerHTML = `
-            <div class="set-actions">
-                <div class="action-button edit" title="Edit set">
-                    <i class="fas fa-edit"></i>
-                </div>
-                <div class="action-button delete" title="Delete set">
-                    <i class="fas fa-trash"></i>
-                </div>
-            </div>
             <h3>${set.name}</h3>
             <div class="progress-container">
                 <div class="progress-bar-container">
@@ -682,19 +672,9 @@ dots.forEach(dot => {
             </div>
         `;
 
-        // Event listener per modifica
-        setElement.querySelector('.edit').addEventListener('click', (e) => {
-            e.stopPropagation();
-            openEditSetModal(set._id, set.name);
-        });
+        
 
-        // Event listener per eliminazione
-        setElement.querySelector('.delete').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (confirm(`Are you sure you want to delete the set "${set.name}"?`)) {
-                deleteSet(set._id);
-            }
-        });
+        
 
         setElement.addEventListener('click', () => {
             window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
