@@ -22,7 +22,7 @@
             color: var(--text);
             font-weight: 500;
             font-size: 18px;
-            cursor: pointer;
+            cursor: pointer;  
             padding: 8px 16px;
             border-radius: 12px;
             background-color: var(--card-background);
@@ -76,24 +76,38 @@
         }
         
         .set-card {
-            background-color: var(--card-background);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
+    background-color: var(--card-background);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+
+    /* Centrare il contenuto */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribuisce lo spazio tra gli elementi */
+    align-items: center;
+    text-align: center;
+    height: 200px
+}
+
         
         .set-card:hover {
             transform: translateY(-5px);
         }
         
         .set-card h3 {
-            margin: 0;
-            font-size: 18px;
-            color: var(--text);
-        }
+    margin: 0;
+    font-size: 18px;
+    color: var(--text);
+    text-align: center;
+    flex-grow: 1; /* Permette all'`h3` di occupare lo spazio centrale */
+    display: flex;
+    align-items: center; /* Centra verticalmente il testo */
+    justify-content: center; /* Centra orizzontalmente il testo */
+}
         
         .set-card p {
             margin: 10px 0 0;
@@ -195,7 +209,7 @@
             background-color: var(--card-background);
             border: 2px dashed var(--text-light); /* Stile visivo per distinguere */
             border-radius: 16px;
-            height: 250px; /* Altezza fissa */
+            height: 200px; /* Altezza fissa */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -203,125 +217,70 @@
             font-size: 14px;
         }
         .study-unknown-button {
-            background-color: var(--primary);
-            color: var(--background);
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
+    background-color: #dd9528; /* Colore più vivace */
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
         .study-unknown-button:hover {
             background-color: #f5a867;
         }
         
-        /* Stili per il carosello */
-.carousel-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.carousel-slides {
-    display: flex;
-    width: 300%;
-    height: 100%;
-    transition: transform 0.3s ease;
-}
-
-.carousel-slide {
-    width: 33.33%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-/* Stili per la navigazione del carosello */
-.carousel-arrow {
-    position: absolute;
-    bottom: 10px; /* Cambiato da top:50% a bottom:10px */
-    width: 30px;
-    height: 30px;
-    background-color: var(--card-background);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    opacity: 0.7;
-    transform: none; /* Rimosso translateY(-50%) */
-}
-
-.carousel-arrow:hover {
-    opacity: 1;
-    background-color: var(--sidebar-hover);
-}
-
-.carousel-arrow.left {
-    left: 35%; /* Posizionato al centro-sinistra */
-}
-
-.carousel-arrow.right {
-    right: 35%; /* Posizionato al centro-destra */
-}
-
-.carousel-nav {
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-    display: none; /* Nascondiamo i pallini per evitare sovrapposizioni */
-    justify-content: center;
-    gap: 8px;
-}
-
-.carousel-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--text-light);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.carousel-dot.active {
-    background-color: var(--primary);
-    transform: scale(1.2);
-}
+        
 
 .slide-icon {
-    font-size: 24px;
-    margin-bottom: 10px;
-    color: var(--primary);
+    font-size: 32px;
+    margin-bottom: 15px;
+    color: #f5a623; /* Colore più accattivante */
 }
 
 .slide-title {
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 10px;
     text-align: center;
+    color: var(--text);
 }
 
 .slide-description {
-    font-size: 12px;
+    font-size: 14px;
     text-align: center;
     color: var(--text-light);
+    margin-bottom: 20px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+
+
+.study-unknown-button:hover {
+    background-color: #e68900;
+    transform: translateY(-2px);
 }
 /* Stili per le barre di progresso personalizzate */
 .progress-container {
-    margin-bottom: 15px;
+    margin-top: auto; /* Spinge la barra di progresso verso il basso */
     font-size: 14px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
 .set-name {
@@ -331,17 +290,18 @@
 }
 
 .progress-bar-container {
-    width: 100%;
-    height: 12px;
+    width: 100%; /* Rendi le barre di progresso più larghe */
+    margin: 0; /* Centra le barre */
+    height: 14px; /* Aumenta leggermente l'altezza */
     background-color: var(--gray);
-    border-radius: 6px;
+    border-radius: 8px; /* Arrotonda di più gli angoli */
     overflow: hidden;
     position: relative;
 }
 
 .progress-bar {
     height: 100%;
-    background-color: var(--primary);
+    background: linear-gradient(90deg, #4caf50, #8bc34a); /* Gradiente verde */
     border-radius: 6px;
     transition: width 0.3s ease;
 }
@@ -353,7 +313,97 @@
     color: var(--text-light);
     margin-top: 3px;
 }
-    </style>
+
+#set-stats-container {
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.tab-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--card-background);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-button.active {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+    text-align: center;
+}
+
+.tab-content.active {
+    display: block;
+}
+    .navigation-arrows {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    .arrow-button {
+        background-color: var(--card-background);
+        color: var(--text);
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .arrow-button:hover {
+        background-color: var(--sidebar-hover);
+    }
+    #set-stats-container .progress-container {
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    background-color: var(--card-background);
+    border-radius: 8px;
+}
+
+#set-stats-container .progress-bar-container {
+    width: 100%;
+    margin: 5px 0;
+}
+
+#set-stats-container .progress-stats {
+    font-size: 12px;
+    color: var(--text-light);
+}
+#stats-chart {
+    max-width: 100%;
+    max-height: 150px;
+    margin: 0 auto;
+    display: block;
+}
+</style>
 </head>
 <body>
     <!-- Header -->
@@ -416,58 +466,24 @@
         <div class="no-sets">No sets available. Add your first set!</div>
         <!-- Nuovo container vuoto per la terza flashcard -->
         <div class="set-card fixed-container">
-            <div class="carousel-container">
-                <div class="carousel-arrow left" id="carousel-prev">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </div>
-                <div class="carousel-slides" id="carousel-slides">
-                    <!-- Slide 1: Studia quelle che non sai -->
-                    <div class="carousel-slide">
-                        <div class="slide-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="slide-title">Studia quelle che non sai</div>
-                        <div class="slide-description">Concentrati sulle flashcard che hai segnato come difficili</div>
-                        <button class="study-unknown-button">
-                            <i class="fas fa-play"></i> Inizia
-                        </button>
-                    </div>
-                    <!-- Slide 2: Stats -->
-
-                    <div class="carousel-slide">
-                        <div class="slide-icon">
-                            <i class="fas fa-chart-pie"></i>
-                        </div>
-                        <div class="slide-title">Statistiche del Deck</div>
-                        <div class="slide-description">
-                            <canvas id="stats-chart" width="200" height="200"></canvas>
-                        </div>
-                    </div>
-                    
-
-                    <!-- Slide 3: Statistiche per set -->
-                    <div class="carousel-slide">
-                        <div class="slide-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div class="slide-title">Statistiche per Set</div>
-                        <div class="slide-description">
-                            <div id="set-stats-container" style="width: 100%; max-height: 180px; overflow-y: auto; padding: 0 10px;">
-                                <!-- Le barre di progresso verranno aggiunte qui dinamicamente -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-arrow right" id="carousel-next">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-                <div class="carousel-nav">
-                    <div class="carousel-dot active" data-index="0"></div>
-                    <div class="carousel-dot" data-index="1"></div>
-                    <div class="carousel-dot" data-index="2"></div>
-                </div>
+    <div class="tab-container">
+        <div class="tab-content active" id="tab-1">
+            <div class="slide-icon">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <div class="slide-title">Concentrati sulle tue difficoltà</div>
+            <div class="slide-description">
+                Rivedi le flashcard che non sai e migliora le tue conoscenze.
+            </div>
+            <div class="button-container">
+                <button class="study-unknown-button">
+                    <i class="fas fa-play"></i> Inizia a studiare
+                </button>
             </div>
         </div>
+    </div>
+</div>
+
         
     </div>
     
@@ -541,35 +557,6 @@
             loadSets();
             setupEventListeners();
         });
-        // Carousel functionality
-let currentSlide = 0;
-const slides = document.getElementById('carousel-slides');
-const dots = document.querySelectorAll('.carousel-dot');
-
-function updateCarousel() {
-    slides.style.transform = `translateX(-${currentSlide * 33.33}%)`;
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === currentSlide);
-    });
-}
-
-document.getElementById('carousel-prev').addEventListener('click', () => {
-    currentSlide = (currentSlide - 1 + 3) % 3;
-    updateCarousel();
-});
-
-document.getElementById('carousel-next').addEventListener('click', () => {
-    currentSlide = (currentSlide + 1) % 3;
-    updateCarousel();
-});
-
-dots.forEach(dot => {
-    dot.addEventListener('click', () => {
-        currentSlide = parseInt(dot.dataset.index);
-        updateCarousel();
-    });
-});
-
 // Set up event listeners for the action buttons
 document.querySelectorAll('.carousel-slide button').forEach((button, index) => {
     button.addEventListener('click', () => {
@@ -651,65 +638,98 @@ dots.forEach(dot => {
         
                 // Visualizza i set
         function displaySets(sets) {
-            const container = document.getElementById('sets-container');
-            
-            // Salva il carosello prima di svuotare il container
-            const carousel = container.querySelector('.fixed-container');
-            
-            // Svuota il container mantenendo il carosello
-            container.innerHTML = '';
-            if (carousel) {
-                container.appendChild(carousel);
+    const container = document.getElementById('sets-container');
+    
+    // Salva il carosello prima di svuotare il container
+    const carousel = container.querySelector('.fixed-container');
+    
+    // Svuota il container mantenendo il carosello
+    container.innerHTML = '';
+    if (carousel) {
+        container.appendChild(carousel);
+    }
+
+    // Aggiungi i set
+    if (!sets || sets.length === 0) {
+        const noSetsMessage = document.createElement('div');
+        noSetsMessage.className = 'no-sets';
+        noSetsMessage.textContent = 'No sets available. Add your first set!';
+        container.appendChild(noSetsMessage);
+        return;
+    }
+
+    sets.forEach(async (set) => {
+        const setElement = document.createElement('div');
+        setElement.className = 'set-card';
+        setElement.dataset.setId = set._id;
+        setElement.innerHTML = `
+            <div class="set-actions">
+                <div class="action-button edit" title="Edit set">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div class="action-button delete" title="Delete set">
+                    <i class="fas fa-trash"></i>
+                </div>
+            </div>
+            <h3>${set.name}</h3>
+            <div class="progress-container">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: 0%;"></div>
+                </div>
+                <div class="progress-stats">
+                    <span>0 conosciute • 0 da studiare</span>
+                </div>
+            </div>
+        `;
+
+        // Event listener per modifica
+        setElement.querySelector('.edit').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEditSetModal(set._id, set.name);
+        });
+
+        // Event listener per eliminazione
+        setElement.querySelector('.delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm(`Are you sure you want to delete the set "${set.name}"?`)) {
+                deleteSet(set._id);
             }
+        });
 
-            // Aggiungi i set
-            if (!sets || sets.length === 0) {
-                const noSetsMessage = document.createElement('div');
-                noSetsMessage.className = 'no-sets';
-                noSetsMessage.textContent = 'No sets available. Add your first set!';
-                container.appendChild(noSetsMessage);
-                return;
-            }
+        setElement.addEventListener('click', () => {
+            window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
+        });
 
-            sets.forEach((set) => {
-                const setElement = document.createElement('div');
-                setElement.className = 'set-card';
-                setElement.dataset.setId = set._id;
-                setElement.innerHTML = `
-                    <div class="set-actions">
-                        <div class="action-button edit" title="Edit set">
-                            <i class="fas fa-edit"></i>
-                        </div>
-                        <div class="action-button delete" title="Delete set">
-                            <i class="fas fa-trash"></i>
-                        </div>
-                    </div>
-                    <h3>${set.name}</h3>
-                    <p>${set.cards?.length || 0} flashcards</p>
-                `;
+        container.appendChild(setElement);
 
-                // Event listener per modifica
-                setElement.querySelector('.edit').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openEditSetModal(set._id, set.name);
-                });
-
-                // Event listener per eliminazione
-                setElement.querySelector('.delete').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (confirm(`Are you sure you want to delete the set "${set.name}"?`)) {
-                        deleteSet(set._id);
-                    }
-                });
-
-                setElement.addEventListener('click', () => {
-                    window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
-                });
-
-                container.appendChild(setElement);
+        // Aggiorna la barra di progresso con i dati reali
+        try {
+            const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${set._id}/stats`, {
+                headers: {
+                    'x-auth-token': localStorage.getItem('token')
+                }
             });
-        }
 
+            if (!response.ok) throw new Error(`Errore nel caricamento delle statistiche per il set ${set.name}`);
+
+            const stats = await response.json();
+            const knownCount = stats.known || 0;
+            const unknownCount = stats.unknown || 0;
+            const totalCards = knownCount + unknownCount;
+            const progressPercentage = totalCards > 0 ? Math.round((knownCount / totalCards) * 100) : 0;
+
+            const progressBar = setElement.querySelector('.progress-bar');
+            const progressStats = setElement.querySelector('.progress-stats');
+
+            progressBar.style.width = `${progressPercentage}%`;
+            progressStats.innerHTML = `
+                <span>${knownCount} conosciute • ${unknownCount} da studiare</span>
+            `;
+        } catch (error) {
+            console.error('Errore nel caricamento delle statistiche per set:', error);
+        }
+    });
+}
         // Funzione per eliminare un set
         async function deleteSet(setId) {
             try {
@@ -775,99 +795,135 @@ dots.forEach(dot => {
         });
 
         // Configura gli event listener
-        function setupEventListeners() {
-            // Pulsante indietro
-            document.getElementById('back-button').addEventListener('click', () => {
-                window.location.href = 'index.html';
+        // Configura gli event listener
+function setupEventListeners() {
+    // Pulsante indietro
+    document.getElementById('back-button').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+    
+    // Pulsante aggiungi set
+    document.getElementById('add-set-button').addEventListener('click', () => {
+        document.getElementById('add-set-modal').style.display = 'flex';
+    });
+    
+    // Form per creare set
+    document.getElementById('add-set-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const setName = document.getElementById('set-name').value;
+        
+        try {
+            const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': localStorage.getItem('token')
+                },
+                body: JSON.stringify({ name: setName })
             });
             
-            // Pulsante aggiungi set
-            document.getElementById('add-set-button').addEventListener('click', () => {
-                document.getElementById('add-set-modal').style.display = 'flex';
-            });
+            if (!response.ok) throw new Error('Error creating set');
             
-            // Form per creare set
-            document.getElementById('add-set-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const setName = document.getElementById('set-name').value;
-                
-                try {
-                    const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets`, {                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-auth-token': localStorage.getItem('token')
-                        },
-                        body: JSON.stringify({ name: setName })
-                    });
-                    
-                    if (!response.ok) throw new Error('Error creating set');
-                    
-                    const newSet = await response.json();
-                    currentSets.push(newSet);
-                    displaySets(currentSets);
-                    document.getElementById('add-set-modal').style.display = 'none';
-                    document.getElementById('add-set-form').reset();
-                    
-                } catch (error) {
-                    console.error('Errore:', error);
-                    alert(`Errore: ${error.message}`);
-                }
-            });
+            const newSet = await response.json();
+            currentSets.push(newSet);
+            displaySets(currentSets);
+            document.getElementById('add-set-modal').style.display = 'none';
+            document.getElementById('add-set-form').reset();
             
-            // Pulsante elimina deck
-            document.getElementById('delete-button').addEventListener('click', async () => {
-                if (confirm('Are you sure you want to delete this deck and all its sets? This action cannot be undone.')) {
-                    try {
-                        const response = await fetch(`${API_URL}/decks/${currentDeckId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'x-auth-token': localStorage.getItem('token')
-                            }
-                        });
-                        
-                        if (!response.ok) throw new Error('Error deleting deck');
-                        
-                        alert('Deck successfully deleted!');
-                        window.location.href = 'index.html';
-                        
-                    } catch (error) {
-                        console.error('Errore:', error);
-                        alert(`Errore: ${error.message}`);
+        } catch (error) {
+            console.error('Errore:', error);
+            alert(`Errore: ${error.message}`);
+        }
+    });
+    
+    // Pulsante elimina deck
+    document.getElementById('delete-button').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to delete this deck and all its sets? This action cannot be undone.')) {
+            try {
+                const response = await fetch(`${API_URL}/decks/${currentDeckId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
                     }
-                }
-            });
-            
-            // Chiudi modali
-            document.querySelectorAll('.close-modal').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.getElementById('add-set-modal').style.display = 'none';
-                    document.getElementById('delete-modal').style.display = 'none';
                 });
-            });
-            
-            // Logout
-            document.getElementById('logout-button').addEventListener('click', () => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = 'login.html';
-            });
-            
-            // Menu profilo
-            const profileButton = document.getElementById('profile-menu-button');
-            const profileDropdown = document.getElementById('profile-dropdown');
-            
-            profileButton.addEventListener('click', () => {
-                profileDropdown.style.display = profileDropdown.style.display === 'none' ? 'block' : 'none';
-            });
-            
-            document.addEventListener('click', (e) => {
-            if (!profileButton.contains(e.target)) {
-                profileDropdown.style.display = 'none';
+                
+                if (!response.ok) throw new Error('Error deleting deck');
+                
+                alert('Deck successfully deleted!');
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
             }
+        }
+    });
+    
+    // Chiudi modali
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('add-set-modal').style.display = 'none';
+            document.getElementById('delete-modal').style.display = 'none';
+            document.getElementById('edit-set-modal').style.display = 'none';
+        });
+    });
+    
+    // Logout
+    document.getElementById('logout-button').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'login.html';
+    });
+    
+    // Menu profilo
+    const profileButton = document.getElementById('profile-menu-button');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    profileButton.addEventListener('click', () => {
+        profileDropdown.style.display = profileDropdown.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!profileButton.contains(e.target)) {
+            profileDropdown.style.display = 'none';
+        }
+    });
+
+    // Pulsante per studiare le flashcard non conosciute
+    document.querySelector('.study-unknown-button').addEventListener('click', () => {
+        window.location.href = `flashcard.html?deckId=${currentDeckId}&mode=unknown`;
+    });
+
+    
+
+    if (leftArrow && rightArrow) {
+        leftArrow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentTabIndex = (currentTabIndex - 1 + tabs.length) % tabs.length;
+            updateTabVisibility();
         });
 
-            
-        }
+        rightArrow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentTabIndex = (currentTabIndex + 1) % tabs.length;
+            updateTabVisibility();
+        });
+    }
+
+    // Pulsante per studiare il deck
+    document.getElementById('study-button').addEventListener('click', () => {
+        window.location.href = `flashcard.html?deckId=${currentDeckId}`;
+    });
+
+    // Pulsante per modificare il deck
+    document.getElementById('edit-button').addEventListener('click', () => {
+        // Implementa la logica per modificare il deck qui
+        alert('Edit deck functionality to be implemented');
+    });
+
+    // Inizializza la visibilità dei tab
+    updateTabVisibility();
+}
         
         async function loadDeckStatistics() {
             try {
@@ -905,7 +961,7 @@ dots.forEach(dot => {
                         responsive: true,
                         plugins: {
                             legend: {
-                                position: 'bottom'
+                                display: false
                             }
                         }
                     }
@@ -920,18 +976,17 @@ dots.forEach(dot => {
         document.addEventListener('DOMContentLoaded', loadDeckStatistics);
         
 
-async function loadSetStatistics() {
+        async function loadSetStatistics() {
     try {
         const container = document.getElementById('set-stats-container');
         container.innerHTML = ''; // Svuota il contenitore
         
         if (!currentSets || currentSets.length === 0) {
-            container.innerHTML = '<div style="text-align:center;color:var(--text-light);">Nessun set disponibile</div>';
+            container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:10px;">Nessun set disponibile</div>';
             return;
         }
 
         for (const set of currentSets) {
-            // Recupera le statistiche per il set corrente
             const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${set._id}/stats`, {
                 headers: {
                     'x-auth-token': localStorage.getItem('token')
@@ -950,34 +1005,37 @@ async function loadSetStatistics() {
             const progressContainer = document.createElement('div');
             progressContainer.className = 'progress-container';
             
-            // Aggiungi il nome del set
+            // Nome del set e conteggio carte
             const setNameElement = document.createElement('div');
             setNameElement.className = 'set-name';
-            setNameElement.textContent = set.name;
+            setNameElement.innerHTML = `
+                <span>${set.name}</span>
+                <span style="float:right;font-weight:normal;">${totalCards} carte</span>
+            `;
             progressContainer.appendChild(setNameElement);
             
-            // Contenitore della barra di progresso
+            // Barra di progresso
             const progressBarContainer = document.createElement('div');
             progressBarContainer.className = 'progress-bar-container';
-            
-            // La barra di progresso effettiva
             const progressBar = document.createElement('div');
             progressBar.className = 'progress-bar';
             progressBar.style.width = `${progressPercentage}%`;
             progressBarContainer.appendChild(progressBar);
             progressContainer.appendChild(progressBarContainer);
             
-            // Statistiche sotto la barra
+            // Statistiche dettagliate
             const progressStats = document.createElement('div');
             progressStats.className = 'progress-stats';
-        
+            progressStats.innerHTML = `
+                <span>${knownCount} conosciute • ${unknownCount} da studiare</span>
+            `;
             progressContainer.appendChild(progressStats);
             
             container.appendChild(progressContainer);
         }
     } catch (error) {
         console.error('Errore nel caricamento delle statistiche per set:', error);
-        document.getElementById('set-stats-container').textContent = 'Errore nel caricamento delle statistiche.';
+        container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:10px;">Errore nel caricamento delle statistiche</div>';
     }
 }
     </script>
