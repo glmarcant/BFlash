@@ -348,11 +348,12 @@
             await loadUnknownCards();
         } else if (currentSetId) {
             // Carica le flashcard del set specifico
-            await loadDeckAndSetNames();
+            await loadDeckAndSetNames(currentDeckId, currentSetId);
             await loadCards();
         } else {
-            alert('Parametro non valido!');
-            window.location.href = 'index.html';
+            // Carica tutte le flashcard del deck
+            await loadDeckAndSetNames(currentDeckId, null);
+            await loadAllDeckCards();
         }
 
         displayCard();
@@ -363,41 +364,41 @@
 });
 
 async function loadDeckAndSetNames(deckId, setId) {
-            try {
-                // Recupera i dettagli del deck
-                const deckResponse = await fetch(`${API_URL}/decks/${deckId}`, {
-                    headers: { 'x-auth-token': localStorage.getItem('token') }
-                });
+    try {
+        // Recupera i dettagli del deck
+        const deckResponse = await fetch(`${API_URL}/decks/${deckId}`, {
+            headers: { 'x-auth-token': localStorage.getItem('token') }
+        });
 
-                if (!deckResponse.ok) {
-                    throw new Error('Errore nel caricamento del deck');
-                }
-
-                const deck = await deckResponse.json();
-                document.getElementById('deck-name').textContent = deck.subject || 'Titolo non disponibile';
-
-                // Recupera i dettagli del set solo se abbiamo un setId
-                if (setId) {
-                    const setResponse = await fetch(`${API_URL}/sets/${deckId}/sets/${setId}`, {
-                        headers: { 'x-auth-token': localStorage.getItem('token') }
-                    });
-
-                    if (!setResponse.ok) {
-                        throw new Error('Errore nel caricamento del set');
-                    }
-
-                    const set = await setResponse.json();
-                    document.getElementById('set-name').textContent = set.name || 'Set non disponibile';
-                } else {
-                    document.getElementById('set-name').textContent = 'Tutte le carte';
-                }
-            } catch (error) {
-                console.error('Errore nel caricamento di deck o set:', error);
-                // Mostra valori di default in caso di errore
-                document.getElementById('deck-name').textContent = 'Deck non disponibile';
-                document.getElementById('set-name').textContent = 'Set non disponibile';
-            }
+        if (!deckResponse.ok) {
+            throw new Error('Errore nel caricamento del deck');
         }
+
+        const deck = await deckResponse.json();
+        document.getElementById('deck-name').textContent = deck.subject || 'Titolo non disponibile';
+
+        // Recupera i dettagli del set solo se abbiamo un setId
+        if (setId) {
+            const setResponse = await fetch(`${API_URL}/sets/${deckId}/sets/${setId}`, {
+                headers: { 'x-auth-token': localStorage.getItem('token') }
+            });
+
+            if (!setResponse.ok) {
+                throw new Error('Errore nel caricamento del set');
+            }
+
+            const set = await setResponse.json();
+            document.getElementById('set-name').textContent = set.name || 'Set non disponibile';
+        } else {
+            document.getElementById('set-name').textContent = 'Tutte le carte';
+        }
+    } catch (error) {
+        console.error('Errore nel caricamento di deck o set:', error);
+        // Mostra valori di default in caso di errore
+        document.getElementById('deck-name').textContent = 'Deck non disponibile';
+        document.getElementById('set-name').textContent = 'Set non disponibile';
+    }
+}
 
         async function loadCards() {
             try {
@@ -417,21 +418,28 @@ async function loadDeckAndSetNames(deckId, setId) {
         }
 
         async function loadRepetitionCards() {
-            try {
-                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/repetition-cards`, {
-                    headers: { 'x-auth-token': localStorage.getItem('token') }
-                });
-
-                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard per ripetizione');
-
-                currentCards = await response.json();
-                currentIndex = 0;
-                displayCard();
-            } catch (error) {
-                console.error('Errore:', error);
-                alert('Errore nel caricamento delle flashcard per ripetizione.');
-            }
+    try {
+        let url;
+        if (currentSetId) {
+            url = `${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/repetition-cards`;
+        } else {
+            url = `${API_URL}/sets/${currentDeckId}/repetition-cards`;
         }
+
+        const response = await fetch(url, {
+            headers: { 'x-auth-token': localStorage.getItem('token') }
+        });
+
+        if (!response.ok) throw new Error('Errore nel caricamento delle flashcard per ripetizione');
+
+        currentCards = await response.json();
+        currentIndex = 0;
+        displayCard();
+    } catch (error) {
+        console.error('Errore:', error);
+        alert('Errore nel caricamento delle flashcard per ripetizione.');
+    }
+}
 
         async function loadUnknownCards() {
             try {
@@ -450,6 +458,23 @@ async function loadDeckAndSetNames(deckId, setId) {
             } catch (error) {
                 console.error('Errore nel caricamento delle flashcard non conosciute:', error);
                 alert('Errore nel caricamento delle flashcard non conosciute.');
+            }
+        }
+
+                async function loadAllDeckCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/cards`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+        
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard del deck');
+        
+                currentCards = await response.json();
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('Errore nel caricamento delle flashcard del deck.');
             }
         }
 
@@ -591,21 +616,51 @@ document.getElementById('super-hard-button').addEventListener('click', () => {
 document.getElementById('options-button').addEventListener('click', async () => {
     const optionsButton = document.getElementById('options-button');
     if (optionsButton.textContent.includes('Classic')) {
+        // Passa a modalità Repetition
         optionsButton.textContent = 'Mode: Repetition';
-        optionsButton.style.backgroundColor = '#f5a867'; // Cambia colore
+        optionsButton.style.backgroundColor = '#f5a867';
         document.getElementById('unknown-button').style.display = 'none';
         document.getElementById('known-button').style.display = 'none';
         document.querySelector('.flashcard-difficulty').style.display = 'flex';
-        await loadRepetitionCards();
+        
+        if (currentSetId) {
+            await loadRepetitionCards();
+        } else {
+            // Se stiamo studiando l'intero deck, usa la route per le carte di ripetizione del deck
+            await loadAllDeckRepetitionCards();
+        }
     } else {
+        // Passa a modalità Classic
         optionsButton.textContent = 'Mode: Classic';
-        optionsButton.style.backgroundColor = 'var(--primary)'; // Ripristina colore
+        optionsButton.style.backgroundColor = 'var(--primary)';
         document.getElementById('unknown-button').style.display = 'block';
         document.getElementById('known-button').style.display = 'block';
         document.querySelector('.flashcard-difficulty').style.display = 'none';
-        await loadCards();
+        
+        if (currentSetId) {
+            await loadCards();
+        } else {
+            // Se stiamo studiando l'intero deck, usa la route per tutte le carte del deck
+            await loadAllDeckCards();
+        }
     }
 });
+async function loadAllDeckRepetitionCards() {
+    try {
+        const response = await fetch(`${API_URL}/sets/${currentDeckId}/repetition-cards`, {
+            headers: { 'x-auth-token': localStorage.getItem('token') }
+        });
+
+        if (!response.ok) throw new Error('Errore nel caricamento delle flashcard per ripetizione del deck');
+
+        currentCards = await response.json();
+        currentIndex = 0;
+        displayCard();
+    } catch (error) {
+        console.error('Errore:', error);
+        alert('Errore nel caricamento delle flashcard per ripetizione del deck.');
+    }
+}
 
 async function updateRepetition(cardId, difficulty) {
     try {
