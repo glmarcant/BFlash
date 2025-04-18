@@ -403,6 +403,28 @@
     margin: 0 auto;
     display: block;
 }
+/* Stile per il pulsante "Study Deck" */
+.study-set-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.study-set-button {
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background-color: var(--primary);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.study-set-button:hover {
+    background-color: var(--primary-dark);
+}
 </style>
 </head>
 <body>
@@ -484,6 +506,11 @@
 
         
     </div>
+    
+    <!-- Aggiungi questo codice sotto il contenitore dei set -->
+<div class="study-set-container">
+    <button class="study-set-button" id="study-deck-button">Study deck</button>
+</div>
     
     <!-- Add Set Modal -->
     <div class="modal" id="add-set-modal" style="display: none;">
@@ -610,7 +637,6 @@ async function loadSets() {
         displaySets(currentSets);
         
         // Carica le statistiche iniziali
-        loadSetStatistics();
 
     } catch (error) {
         console.error('Errore:', error);
@@ -619,18 +645,7 @@ async function loadSets() {
     }
 }
 
-// Aggiungi un event listener per il cambio slide
-dots.forEach(dot => {
-    dot.addEventListener('click', () => {
-        currentSlide = parseInt(dot.dataset.index);
-        updateCarousel();
-        
-        // Se siamo nella terza slide (indice 2), aggiorna le statistiche
-        if (currentSlide === 2) {
-            loadSetStatistics();
-        }
-    });
-});
+
 
 
         
@@ -876,19 +891,7 @@ function setupEventListeners() {
 
     
 
-    if (leftArrow && rightArrow) {
-        leftArrow.addEventListener('click', (e) => {
-            e.stopPropagation();
-            currentTabIndex = (currentTabIndex - 1 + tabs.length) % tabs.length;
-            updateTabVisibility();
-        });
-
-        rightArrow.addEventListener('click', (e) => {
-            e.stopPropagation();
-            currentTabIndex = (currentTabIndex + 1) % tabs.length;
-            updateTabVisibility();
-        });
-    }
+    
 
     // Pulsante per studiare il deck
     document.getElementById('study-button').addEventListener('click', () => {
@@ -904,120 +907,16 @@ function setupEventListeners() {
     // Inizializza la visibilità dei tab
     updateTabVisibility();
 }
+       
         
-        async function loadDeckStatistics() {
-            try {
-                // Recupera le flashcard non conosciute
-                const response = await fetch(`${API_URL}/sets/${currentDeckId}/unknown-cards`, {
-                    headers: {
-                        'x-auth-token': localStorage.getItem('token')
-                    }
-                });
-        
-                if (!response.ok) throw new Error('Errore nel caricamento delle statistiche');
-        
-                const unknownCards = await response.json();
-                const unknownCount = unknownCards.length;
-        
-                // Calcola il numero totale di flashcard
-                const totalCards = currentSets.reduce((sum, set) => sum + (set.cards?.length || 0), 0);
-        
-                // Calcola il numero di flashcard conosciute
-                const knownCount = totalCards - unknownCount;
-        
-                // Crea il grafico a ciambella
-                const ctx = document.getElementById('stats-chart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Conosciute', 'Non conosciute'],
-                        datasets: [{
-                            data: [knownCount, unknownCount],
-                            backgroundColor: ['#4caf50', '#f44336'], // Colori per conosciute e non conosciute
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Errore nel caricamento delle statistiche:', error);
-                document.getElementById('stats-text').textContent = 'Errore nel caricamento delle statistiche.';
-            }
-        }
-        
-        // Chiama la funzione per caricare le statistiche
-        document.addEventListener('DOMContentLoaded', loadDeckStatistics);
-        
-
-        async function loadSetStatistics() {
-    try {
-        const container = document.getElementById('set-stats-container');
-        container.innerHTML = ''; // Svuota il contenitore
-        
-        if (!currentSets || currentSets.length === 0) {
-            container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:10px;">Nessun set disponibile</div>';
-            return;
-        }
-
-        for (const set of currentSets) {
-            const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${set._id}/stats`, {
-                headers: {
-                    'x-auth-token': localStorage.getItem('token')
-                }
-            });
-
-            if (!response.ok) throw new Error(`Errore nel caricamento delle statistiche per il set ${set.name}`);
-
-            const stats = await response.json();
-            const knownCount = stats.known || 0;
-            const unknownCount = stats.unknown || 0;
-            const totalCards = knownCount + unknownCount;
-            const progressPercentage = totalCards > 0 ? Math.round((knownCount / totalCards) * 100) : 0;
-
-            // Crea il contenitore per la barra di progresso
-            const progressContainer = document.createElement('div');
-            progressContainer.className = 'progress-container';
-            
-            // Nome del set e conteggio carte
-            const setNameElement = document.createElement('div');
-            setNameElement.className = 'set-name';
-            setNameElement.innerHTML = `
-                <span>${set.name}</span>
-                <span style="float:right;font-weight:normal;">${totalCards} carte</span>
-            `;
-            progressContainer.appendChild(setNameElement);
-            
-            // Barra di progresso
-            const progressBarContainer = document.createElement('div');
-            progressBarContainer.className = 'progress-bar-container';
-            const progressBar = document.createElement('div');
-            progressBar.className = 'progress-bar';
-            progressBar.style.width = `${progressPercentage}%`;
-            progressBarContainer.appendChild(progressBar);
-            progressContainer.appendChild(progressBarContainer);
-            
-            // Statistiche dettagliate
-            const progressStats = document.createElement('div');
-            progressStats.className = 'progress-stats';
-            progressStats.innerHTML = `
-                <span>${knownCount} conosciute • ${unknownCount} da studiare</span>
-            `;
-            progressContainer.appendChild(progressStats);
-            
-            container.appendChild(progressContainer);
-        }
-    } catch (error) {
-        console.error('Errore nel caricamento delle statistiche per set:', error);
-        container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:10px;">Errore nel caricamento delle statistiche</div>';
+document.getElementById('study-deck-button').addEventListener('click', () => {
+    if (!currentDeckId) {
+        alert('Deck ID mancante!');
+        return;
     }
-}
+
+    // Reindirizzamento al sito di test
+    window.location.href = `flashcard.html?deckId=${currentDeckId}`;});
     </script>
 </body>
 </html>
