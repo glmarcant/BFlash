@@ -66,15 +66,18 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { emailOrUsername, password } = req.body;
 
-    // Verifica se l'utente esiste
-    let user = await User.findOne({ email });
+    // Cerca l'utente tramite email o username
+    let user = await User.findOne({
+      $or: [{ email: emailOrUsername }, { username: emailOrUsername }]
+    });
+
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Controlla password
+    // Controlla la password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
@@ -93,13 +96,13 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
-        res.json({ 
+        res.json({
           token,
           user: {
             id: user.id,
             username: user.username,
             email: user.email
-          } 
+          }
         });
       }
     );
