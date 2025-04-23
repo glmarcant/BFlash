@@ -5,7 +5,9 @@ const userRoutes = require('./routes/userRoutes');
 const deckRoutes = require('./routes/deckRoutes');
 const authRoutes = require('./routes/authRoutes');
 const cardRoutes = require('./routes/cardRoutes');
-const setRoutes = require('./routes/setRoutes'); // Aggiungi questa linea
+const setRoutes = require('./routes/setRoutes'); 
+const searchRoutes = require('./routes/searchRoutes');
+
 
 const app = express();
 
@@ -20,6 +22,8 @@ app.use('/api/decks', deckRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/sets', setRoutes); 
+app.use('/api/search', searchRoutes);
+
 
 // Test route
 app.get('/api', (req, res) => {
