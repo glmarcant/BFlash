@@ -425,6 +425,78 @@
 .study-set-button:hover {
     background-color: var(--primary-dark);
 }
+
+/* Search results styles */
+.search-result {
+  margin-bottom: 20px;
+}
+
+.search-sets, .search-cards {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.search-sets h4, .search-cards h4 {
+  color: var(--text-light);
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.search-item {
+  padding: 5px 0;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.search-item:hover {
+  color: var(--primary);
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-light);
+}
+
+.search-results-container {
+    padding: 20px;
+    margin-top: 80px;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.search-result-item {
+    padding: 15px;
+    border-bottom: 1px solid var(--gray);
+    cursor: pointer;
+}
+
+.search-result-item:hover {
+    background-color: var(--gray);
+    border-radius: 8px;
+}
+
+.search-result-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.search-result-content {
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.search-type-label {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: var(--primary);
+    color: white;
+    font-size: 12px;
+    margin-right: 8px;
+}
 </style>
 </head>
 <body>
@@ -437,7 +509,7 @@
             <div class="app-name">NomeApp</div>
         </div>
         <div class="search-profile">
-            <input type="text" class="search-bar" placeholder="Cerca...">
+            <input type="text" class="search-bar" placeholder="Search...">
             <div class="crown">
                 <i class="fas fa-crown"></i>
             </div>
@@ -455,6 +527,13 @@
         </div>
     </header>
     
+    <!-- Aggiungi questa nuova sezione dopo l'header -->
+<div class="search-results-container" style="display: none;">
+    <div class="search-results">
+        <!-- I risultati della ricerca verranno inseriti qui -->
+    </div>
+</div>
+
     <!-- Deck Header -->
     <div class="deck-header">
         <div class="back-button" id="back-button">
@@ -789,9 +868,130 @@ async function loadSets() {
             document.getElementById('edit-set-modal').style.display = 'none';
         });
 
-        // Configura gli event listener
-        // Configura gli event listener
-function setupEventListeners() {
+
+
+function updateTabVisibility() {
+    const tabs = document.querySelectorAll('.tab-content');
+    const buttons = document.querySelectorAll('.tab-button');
+    
+    // Mostra il primo tab all'avvio
+    if (tabs.length > 0) {
+        tabs[0].classList.add('active');
+    }
+    if (buttons.length > 0) {
+        buttons[0].classList.add('active');
+    }
+}
+
+
+
+// Search functionality
+function setupSearch() {
+    const searchInput = document.querySelector('.search-bar');
+    const deckHeader = document.querySelector('.deck-header');
+    const addDeckContainer = document.querySelector('.add-deck-container');
+    const setsContainer = document.querySelector('.sets-container');
+    const searchResultsContainer = document.querySelector('.search-results-container');
+    const studyDeckContainer = document.querySelector('.study-set-container'); // Aggiungi questa riga
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        
+        const query = e.target.value.trim();
+        
+        if (query.length > 0) {
+            // Nascondi il contenuto principale
+            deckHeader.style.display = 'none';
+            addDeckContainer.style.display = 'none';
+            setsContainer.style.display = 'none';
+            studyDeckContainer.style.display = 'none'; // Aggiungi questa riga
+            
+            // Mostra il contenitore dei risultati
+            searchResultsContainer.style.display = 'block';
+            
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 300);
+        } else {
+            // Mostra il contenuto principale
+            deckHeader.style.display = 'flex';
+            addDeckContainer.style.display = 'flex';
+            setsContainer.style.display = 'grid';
+            studyDeckContainer.style.display = 'flex'; // Aggiungi questa riga
+            
+            // Nascondi i risultati
+            searchResultsContainer.style.display = 'none';
+        }
+    });
+}
+
+async function performSearch(query) {
+    const token = localStorage.getItem('token');
+    const searchResultsContainer = document.querySelector('.search-results');
+    
+    try {
+        const response = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`, {
+            headers: {
+                'x-auth-token': token
+            }
+        });
+        
+        if (!response.ok) throw new Error('Search failed');
+        
+        const results = await response.json();
+        searchResultsContainer.innerHTML = '';
+        
+        if (results.length === 0) {
+            searchResultsContainer.innerHTML = `
+                <div class="no-results">
+                    Nessun risultato trovato per "${query}"
+                </div>`;
+            return;
+        }
+        
+        results.forEach(result => {
+            // Per ogni deck
+            if (result.deckName.toLowerCase().includes(query.toLowerCase())) {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='deck.html?id=${result.deckId}'">
+                        <span class="search-type-label">Deck</span>
+                        <div class="search-result-title">${result.deckName}</div>
+                    </div>`;
+            }
+            
+            // Per ogni set nel deck
+            result.sets.forEach(set => {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='set.html?deckId=${result.deckId}&setId=${set._id}'">
+                        <span class="search-type-label">Set</span>
+                        <div class="search-result-title">${set.name}</div>
+                        <div class="search-result-content">in ${result.deckName}</div>
+                    </div>`;
+            });
+            
+            // Per ogni card nel deck
+            result.cards.forEach(card => {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='set.html?deckId=${result.deckId}&setId=${card.set}'">
+                        <span class="search-type-label">Card</span>
+                        <div class="search-result-title">${card.question.substring(0, 100)}</div>
+                        <div class="search-result-content">in ${result.deckName}${card.setName ? `, ${card.setName}` : ''}</div>
+                    </div>`;
+            });
+        });
+        
+    } catch (error) {
+        console.error('Error during search:', error);
+        searchResultsContainer.innerHTML = `
+            <div class="error-message">
+                Errore durante la ricerca. Riprova più tardi.
+            </div>`;
+    }
+}
+
+        function setupEventListeners() {
     // Pulsante indietro
     document.getElementById('back-button').addEventListener('click', () => {
         window.location.href = 'index.html';
@@ -893,10 +1093,7 @@ function setupEventListeners() {
 
     
 
-    // Pulsante per studiare il deck
-    document.getElementById('study-button').addEventListener('click', () => {
-        window.location.href = `flashcard.html?deckId=${currentDeckId}`;
-    });
+ 
 
     // Pulsante per modificare il deck
     document.getElementById('edit-button').addEventListener('click', () => {
@@ -906,6 +1103,8 @@ function setupEventListeners() {
 
     // Inizializza la visibilità dei tab
     updateTabVisibility();
+    setupSearch(); // Aggiungi questa riga
+
 }
        
         
@@ -914,6 +1113,7 @@ document.getElementById('study-deck-button').addEventListener('click', () => {
         alert('Deck ID mancante!');
         return;
     }
+    
 
     // Reindirizzamento al sito di test
     window.location.href = `flashcard.html?deckId=${currentDeckId}`;});
