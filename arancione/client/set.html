@@ -395,6 +395,49 @@
         let studyModeIndex = 0;
         let showingAnswer = false;
 
+        // Load user profile
+        async function loadUserProfile() { 
+            const token = localStorage.getItem('token');
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            // Update username in the dropdown menu if stored locally
+            if (storedUser.username) {
+                document.getElementById('username-display').textContent = storedUser.username;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: {
+                        'x-auth-token': token
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Token expired or invalid
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed to load user profile');
+                }
+                
+                const userData = await response.json();
+                
+                // Update username in the dropdown menu
+                document.getElementById('username-display').textContent = userData.username;
+                
+                // Store the user data in localStorage
+                localStorage.setItem('user', JSON.stringify({
+                    id: userData._id,
+                    username: userData.username
+                }));
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
         // Verifica autenticazione e carica i dati
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('token');
@@ -414,6 +457,7 @@
                 return;
             }
             
+            loadUserProfile();
             loadSetDetails();
             loadCards();
             setupEventListeners();
@@ -452,12 +496,24 @@
                 if (!response.ok) throw new Error('Errore nel caricamento delle flashcard');
 
                 currentCards = await response.json();
+
+                // Hide the "Study Set" button if no cards are available
+                const studySetButton = document.getElementById('study-set-button');
+                if (!currentCards || currentCards.length === 0) {
+                    studySetButton.style.display = 'none';
+                } else {
+                    studySetButton.style.display = 'block';
+                }
+
                 displayCards(currentCards);
 
             } catch (error) {
                 console.error('Errore:', error);
                 document.getElementById('cards-container').innerHTML =
                     '<div class="no-cards">Errore nel caricamento delle flashcard. Riprova più tardi.</div>';
+                
+                // Hide the "Study Set" button in case of an error
+                document.getElementById('study-set-button').style.display = 'none';
             }
         }
         
@@ -503,6 +559,7 @@
 
                 container.appendChild(cardElement);
             });
+            
         }
 
         // Apri il modale per modificare la flashcard
@@ -546,6 +603,8 @@
                     const newCard = await response.json();
                     currentCards.push(newCard);
                     displayCards(currentCards);
+                    // Reload the cards to update the UI
+                    await loadCards();
                     document.getElementById('add-card-modal').style.display = 'none';
                     document.getElementById('add-card-form').reset();
                     
@@ -621,6 +680,9 @@
                     });
                     
                     if (!response.ok) throw new Error('Errore nell\'eliminazione della flashcard');
+                    
+                    // Reload the cards to update the UI
+                    await loadCards();
                     
                     currentCards = currentCards.filter(card => card._id !== currentDeleteCardId);
                     displayCards(currentCards);

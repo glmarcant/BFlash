@@ -278,6 +278,9 @@
     </style>
 </head>
 <body>
+    <div class="back-button-container">
+        <button class="back-button" id="back-button">← </button>
+    </div>
     <div class="progress-wrapper">
         <div class="progress-text" id="progress-text">1 di 3</div>
         <div class="progress-bar-container">
@@ -324,12 +327,26 @@
         let currentIndex = 0;
         let showingAnswer = false;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
+    document.getElementById('back-button').addEventListener('click', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const deckId = urlParams.get('deckId');
+        const setId = urlParams.get('setId');
+
+        if (deckId && setId) {
+            window.location.href = `set.html?deckId=${deckId}&setId=${setId}`;
+        } else if (deckId) {
+            window.location.href = `deck.html?deckId=${deckId}`;
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
 
     const urlParams = new URLSearchParams(window.location.search);
     currentDeckId = urlParams.get('deckId');

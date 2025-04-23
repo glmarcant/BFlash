@@ -325,6 +325,29 @@
             transform: translateY(-2px);
         }
         
+        .back-button-container {
+            position: absolute;
+            top: 35px;
+            left: 25px;
+            z-index: 10;
+        }
+        
+        .back-button {
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background-color: var(--primary);
+            color: var(--background);
+            transition: all 0.2s;
+        }
+        
+        .back-button:hover {
+            background-color: #f5a867;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .main-container {

@@ -375,7 +375,7 @@
             
             <!-- Profile dropdown menu -->
             <div class="profile-dropdown" id="profile-dropdown" style="display: none;">
-                <div class="dropdown-item" id="username-display">Username</div>
+                <div class="dropdown-item" id="username-display">username</div>
                 <div class="dropdown-item" id="logout-button">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </div>
@@ -519,6 +519,49 @@
         let currentSets = [];
         let currentEditSetId = null;
 
+        // Load user profile
+        async function loadUserProfile() { 
+            const token = localStorage.getItem('token');
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            // Update username in the dropdown menu if stored locally
+            if (storedUser.username) {
+                document.getElementById('username-display').textContent = storedUser.username;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: {
+                        'x-auth-token': token
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Token expired or invalid
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed to load user profile');
+                }
+                
+                const userData = await response.json();
+                
+                // Update username in the dropdown menu
+                document.getElementById('username-display').textContent = userData.username;
+                
+                // Store the user data in localStorage
+                localStorage.setItem('user', JSON.stringify({
+                    id: userData._id,
+                    username: userData.username
+                }));
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
         // Verifica autenticazione e carica i dati
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('token');
@@ -537,6 +580,7 @@
                 return;
             }
             
+            loadUserProfile();
             loadDeckDetails();
             loadSets();
             setupEventListeners();
