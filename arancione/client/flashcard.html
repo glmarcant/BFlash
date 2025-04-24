@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Flashcard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+/* Stili specifici per la pagina flashcard */
+.progress-wrapper {
+    margin-bottom: 20px;
+}
+
+.progress-text {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.progress-bar-container {
+    background-color: var(--gray);
+    height: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-left: 80px;
+    margin-right: 80px;
+
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary);
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.flashcard-container {
+    background-color: var(--background);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    min-height: 350px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    height: 650px;
+    perspective: 1000px;
+    margin-left: 100px;
+    margin-right: 100px;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.flashcard-container.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px var(--shadow-color);
+}
+
+.flashcard-front {
+    background-color: var(--card-background);
+}
+
+.flashcard-back {
+    background-color: var(--card-background);
+    color: var(--primary);
+    transform: rotateY(180deg);
+}
+
+.flashcard-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    position: absolute;
+    top: 30px; /* Posiziona in alto */
+    left: 0;
+    padding: 0 30px; /* Aggiunge un po' di spazio ai lati */
+    z-index: 1;
+    backface-visibility: hidden;
+}
+
+.deck-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary);
+    text-align: left;
+}
+
+.set-name {
+    font-size: 16px;
+    color: var(--text);
+    opacity: 0.8;
+    text-align: right;
+}
+
+.flashcard-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 24px;
+    font-weight: 500;
+    padding: 0 30px;
+    width: 100%;
+}
+
+.flashcard-content.question,
+.flashcard-content.answer {
+    display: none;
+}
+
+.flashcard-content.visible {
+    display: block;
+}
+
+.tap-to-see {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text);
+    opacity: 0.6;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.4; }
+}
+
+.flashcard-actions {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none; /* Evita che i pulsanti interferiscano con il clic sulla flashcard */
+}
+
+.action-button {
+    pointer-events: auto; /* Permette di cliccare sui pulsanti */
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.action-button.unknown {
+    background-color: var(--gray);
+    color: var(--text);
+    margin-left: 90px;
+    
+}
+
+.action-button.known {
+    background-color: var(--primary);
+    color: var(--background);
+    margin-right: 90px;
+}
+
+.action-button.unknown:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.action-button.known:hover {
+    background-color: #f5a867;
+}
+.flashcard-options {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .options-button {
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background-color: var(--primary);
+        color: var(--background);
+        transition: all 0.2s;
+    }
+
+    .options-button:hover {
+        background-color: #f5a867;
+    }
+
+.flashcard-difficulty {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    display: none;
+}
+
+.difficulty-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background-color: var(--gray);
+    color: var(--primary);
+    transition: all 0.2s;
+}
+
+.difficulty-button:hover {
+    background-color: #f5a867;
+    color: var(--gray);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .flashcard-container {
+        min-height: 300px;
+    }
+
+    .flashcard-content {
+        font-size: 20px;
+        margin: 30px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .flashcard-container {
+        min-height: 250px;
+        padding: 20px;
+    }
+
+    .flashcard-content {
+        font-size: 18px;
+        margin: 20px 0;
+    }
+
+    .action-button {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    .flashcard-actions {
+        gap: 10px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="progress-wrapper">
+        <div class="progress-text" id="progress-text">0</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div class="flashcard-container" id="flashcard-container">
+        <div class="flashcard-inner">
+            <div class="flashcard-front">
+                <div class="flashcard-header">
+                    <div class="deck-name" id="deck-name">Caricamento...</div>
+                    <div class="set-name" id="set-name">Caricamento...</div>
+                </div>
+                <div class="flashcard-content question" id="flashcard-content-question">Caricamento...</div>
+                <div class="tap-to-see" id="tap-to-see">Tocca per vedere la risposta</div>
+            </div>
+            <div class="flashcard-back">
+                <div class="flashcard-content answer" id="flashcard-content-answer">Risposta...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flashcard-actions">
+        <button class="action-button unknown" id="unknown-button">✗</button>
+        <button class="action-button known" id="known-button">✓</button>
+    </div>
+    <div class="flashcard-options">
+    <button class="options-button" id="options-button">Mode: Classic</button>
+</div>
+
+    <div class="flashcard-difficulty">
+        <button class="difficulty-button easy" id="easy-button">Easy</button>
+        <button class="difficulty-button medium" id="medium-button">Medium</button>
+        <button class="difficulty-button hard" id="hard-button">Hard</button>
+        <button class="difficulty-button super-hard" id="super-hard-button">Super Hard</button>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let currentDeckId = '';
+        let currentSetId = '';
+        let currentCards = [];
+        let currentIndex = 0;
+        let showingAnswer = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    currentDeckId = urlParams.get('deckId');
+    currentSetId = urlParams.get('setId'); // Questo sarà null se non è passato
+    const mode = urlParams.get('mode'); // Controlla se è "unknown"
+
+    if (!currentDeckId) {
+        alert('ID mazzo mancante!');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    try {
+        if (mode === 'unknown') {
+            // Carica solo le flashcard non conosciute del deck
+            await loadUnknownCards();
+        } else if (currentSetId) {
+            // Carica le flashcard del set specifico
+            await loadDeckAndSetNames(currentDeckId, currentSetId);
+            await loadCards();
+        } else {
+            // Carica tutte le flashcard del deck
+            await loadDeckAndSetNames(currentDeckId, null);
+            await loadAllDeckCards();
+        }
+
+        displayCard();
+    } catch (error) {
+        console.error('Errore durante il caricamento delle flashcard:', error);
+        alert('Errore durante il caricamento delle flashcard.');
+    }
+});
+
+async function loadDeckAndSetNames(deckId, setId) {
+    try {
+        // Recupera i dettagli del deck
+        const deckResponse = await fetch(`${API_URL}/decks/${deckId}`, {
+            headers: { 'x-auth-token': localStorage.getItem('token') }
+        });
+
+        if (!deckResponse.ok) {
+            throw new Error('Errore nel caricamento del deck');
+        }
+
+        const deck = await deckResponse.json();
+        document.getElementById('deck-name').textContent = deck.subject || 'Titolo non disponibile';
+
+        // Recupera i dettagli del set solo se abbiamo un setId
+        if (setId) {
+            const setResponse = await fetch(`${API_URL}/sets/${deckId}/sets/${setId}`, {
+                headers: { 'x-auth-token': localStorage.getItem('token') }
+            });
+
+            if (!setResponse.ok) {
+                throw new Error('Errore nel caricamento del set');
+            }
+
+            const set = await setResponse.json();
+            document.getElementById('set-name').textContent = set.name || 'Set non disponibile';
+        } else {
+            document.getElementById('set-name').textContent = 'Tutte le carte';
+        }
+    } catch (error) {
+        console.error('Errore nel caricamento di deck o set:', error);
+        // Mostra valori di default in caso di errore
+        document.getElementById('deck-name').textContent = 'Deck non disponibile';
+        document.getElementById('set-name').textContent = 'Set non disponibile';
+    }
+}
+
+        async function loadCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard');
+
+                currentCards = await response.json();
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('Errore nel caricamento delle flashcard.');
+            }
+        }
+
+        async function loadRepetitionCards() {
+    try {
+        let url;
+        if (currentSetId) {
+            url = `${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/repetition-cards`;
+        } else {
+            url = `${API_URL}/sets/${currentDeckId}/repetition-cards`;
+        }
+
+        const response = await fetch(url, {
+            headers: { 'x-auth-token': localStorage.getItem('token') }
+        });
+
+        if (!response.ok) throw new Error('Errore nel caricamento delle flashcard per ripetizione');
+
+        currentCards = await response.json();
+        currentIndex = 0;
+        displayCard();
+    } catch (error) {
+        console.error('Errore:', error);
+        alert('Errore nel caricamento delle flashcard per ripetizione.');
+    }
+}
+
+        async function loadUnknownCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/unknown-cards`, {
+                    headers: { 'x-auth-token': localStorage.getItem('token') }
+                });
+
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard non conosciute');
+
+                currentCards = await response.json();
+                
+                // Se abbiamo almeno una card, carichiamo i nomi del deck e del set
+                if (currentCards.length > 0) {
+                    await loadDeckAndSetNames(currentCards[0].deck, currentCards[0].set);
+                }
+            } catch (error) {
+                console.error('Errore nel caricamento delle flashcard non conosciute:', error);
+                alert('Errore nel caricamento delle flashcard non conosciute.');
+            }
+        }
+
+                async function loadAllDeckCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/cards`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+        
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard del deck');
+        
+                currentCards = await response.json();
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('Errore nel caricamento delle flashcard del deck.');
+            }
+        }
+
+        function displayCard() {
+            if (currentCards.length === 0) {
+                document.getElementById('flashcard-content-question').textContent = 'Nessuna flashcard disponibile.';
+                document.getElementById('flashcard-content-answer').textContent = '';
+                document.getElementById('unknown-button').style.display = 'none';
+                document.getElementById('known-button').style.display = 'none';
+                document.getElementById('deck-name').textContent = 'Nessun deck';
+                document.getElementById('set-name').textContent = 'Nessun set';
+                return;
+            }
+
+            const card = currentCards[currentIndex];
+            document.getElementById('flashcard-content-question').textContent = card.question;
+            document.getElementById('flashcard-content-answer').textContent = card.answer;
+
+            // Carica i nomi del deck e del set per la card corrente
+            loadDeckAndSetNames(card.deck, card.set);
+
+            document.getElementById('flashcard-content-question').classList.add('visible');
+            document.getElementById('flashcard-content-answer').classList.remove('visible');
+            document.getElementById('tap-to-see').style.display = 'block';
+            showingAnswer = false;
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            if (currentCards.length > 0) {
+                const progress = ((currentIndex + 1) / currentCards.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                document.getElementById('progress-text').textContent = `${currentIndex + 1} di ${currentCards.length}`;
+            } else {
+                document.getElementById('progress-bar').style.width = '0%';
+                document.getElementById('progress-text').textContent = '0 di 0';
+            }
+        }
+
+        document.getElementById('flashcard-container').addEventListener('click', () => {
+    const flashcardContainer = document.getElementById('flashcard-container');
+    const questionContent = document.getElementById('flashcard-content-question');
+    const answerContent = document.getElementById('flashcard-content-answer');
+
+    flashcardContainer.classList.toggle('flipped');
+    if (flashcardContainer.classList.contains('flipped')) {
+        questionContent.classList.remove('visible');
+        answerContent.classList.add('visible');
+    } else {
+        answerContent.classList.remove('visible');
+        questionContent.classList.add('visible');
+    }
+});
+
+        document.getElementById('unknown-button').addEventListener('click', async () => {
+    await updateCardKnowledge('no');
+    nextCard();
+});
+
+document.getElementById('known-button').addEventListener('click', async () => {
+    await updateCardKnowledge('yes');
+    nextCard();
+});
+
+        async function updateCardKnowledge(known) {
+            const card = currentCards[currentIndex];
+            try {
+                const url = currentSetId 
+                    ? `${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${card._id}`
+                    : `${API_URL}/sets/${currentDeckId}/cards/${card._id}`;
+                    
+                await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ known })
+                });
+            } catch (error) {
+                console.error('Errore nell\'aggiornamento dello stato della flashcard:', error);
+            }
+        }
+
+        function nextCard() {
+    currentIndex++;
+    if (currentIndex >= currentCards.length) {
+        alert('Hai completato tutte le flashcard! Ricominciamo dall\'inizio.');
+        currentIndex = 0;
+    }
+
+    // Assicurati che la flashcard sia girata sul front
+    const flashcardContainer = document.getElementById('flashcard-container');
+    flashcardContainer.classList.remove('flipped');
+
+    displayCard(); // Mostra la nuova flashcard
+}
+
+document.getElementById('easy-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'easy');
+    nextCard();
+});
+
+document.getElementById('medium-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'medium');
+    nextCard();
+});
+
+document.getElementById('hard-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'hard');
+    nextCard();
+});
+
+document.getElementById('super-hard-button').addEventListener('click', async () => {
+    await updateRepetition(currentCards[currentIndex]._id, 'super-hard');
+    nextCard();
+});
+
+document.getElementById('easy-button').addEventListener('click', () => {
+    console.log('Easy button clicked');
+    // Aggiungi la logica per il pulsante Easy
+});
+
+document.getElementById('medium-button').addEventListener('click', () => {
+    console.log('Medium button clicked');
+    // Aggiungi la logica per il pulsante Medium
+});
+
+document.getElementById('hard-button').addEventListener('click', () => {
+    console.log('Hard button clicked');
+    // Aggiungi la logica per il pulsante Hard
+});
+
+document.getElementById('super-hard-button').addEventListener('click', () => {
+    console.log('Super Hard button clicked');
+    // Aggiungi la logica per il pulsante Super Hard
+});
+
+document.getElementById('options-button').addEventListener('click', async () => {
+    const optionsButton = document.getElementById('options-button');
+    if (optionsButton.textContent.includes('Classic')) {
+        // Passa a modalità Repetition
+        optionsButton.textContent = 'Mode: Repetition';
+        optionsButton.style.backgroundColor = '#f5a867';
+        document.getElementById('unknown-button').style.display = 'none';
+        document.getElementById('known-button').style.display = 'none';
+        document.querySelector('.flashcard-difficulty').style.display = 'flex';
+        
+        if (currentSetId) {
+            await loadRepetitionCards();
+        } else {
+            // Se stiamo studiando l'intero deck, usa la route per le carte di ripetizione del deck
+            await loadAllDeckRepetitionCards();
+        }
+    } else {
+        // Passa a modalità Classic
+        optionsButton.textContent = 'Mode: Classic';
+        optionsButton.style.backgroundColor = 'var(--primary)';
+        document.getElementById('unknown-button').style.display = 'block';
+        document.getElementById('known-button').style.display = 'block';
+        document.querySelector('.flashcard-difficulty').style.display = 'none';
+        
+        if (currentSetId) {
+            await loadCards();
+        } else {
+            // Se stiamo studiando l'intero deck, usa la route per tutte le carte del deck
+            await loadAllDeckCards();
+        }
+    }
+});
+async function loadAllDeckRepetitionCards() {
+    try {
+        const response = await fetch(`${API_URL}/sets/${currentDeckId}/repetition-cards`, {
+            headers: { 'x-auth-token': localStorage.getItem('token') }
+        });
+
+        if (!response.ok) throw new Error('Errore nel caricamento delle flashcard per ripetizione del deck');
+
+        currentCards = await response.json();
+        currentIndex = 0;
+        displayCard();
+    } catch (error) {
+        console.error('Errore:', error);
+        alert('Errore nel caricamento delle flashcard per ripetizione del deck.');
+    }
+}
+
+async function updateRepetition(cardId, difficulty) {
+    try {
+        const url = currentSetId 
+            ? `${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${cardId}/repetition`
+            : `${API_URL}/sets/${currentDeckId}/cards/${cardId}/repetition`;
+            
+        await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': localStorage.getItem('token')
+            },
+            body: JSON.stringify({ difficulty })
+        });
+    } catch (error) {
+        console.error('Errore nell\'aggiornamento della prossima ripetizione:', error);
+    }
+}
+    </script>
+</body>
+</html>

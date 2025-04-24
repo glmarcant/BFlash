@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NomeApp - Flashcard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Stili specifici per la pagina dei set */
+        .deck-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 18px;
+            cursor: pointer;  
+            padding: 8px 16px;
+            border-radius: 12px;
+            background-color: var(--card-background);
+            transition: all 0.2s;
+        }
+        
+        .back-button:hover {
+            background-color: var(--sidebar-hover);
+            transform: translateX(-2px);
+        }
+        
+        .deck-title {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .deck-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+        
+        .action-button.delete:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        
+        /* Stili per i set */
+        .sets-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .set-card {
+    background-color: var(--card-background);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+
+    /* Centrare il contenuto */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribuisce lo spazio tra gli elementi */
+    align-items: center;
+    text-align: center;
+    height: 200px
+}
+
+        
+        .set-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .set-card h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text);
+    text-align: center;
+    flex-grow: 1; /* Permette all'`h3` di occupare lo spazio centrale */
+    display: flex;
+    align-items: center; /* Centra verticalmente il testo */
+    justify-content: center; /* Centra orizzontalmente il testo */
+}
+        
+        .set-card p {
+            margin: 10px 0 0;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .set-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .set-actions .action-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .set-actions .action-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .set-actions .action-button.delete:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        
+        .no-sets {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        /* Modali */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: var(--card-background);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--gray);
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+        .fixed-container {
+            grid-column: 3; /* Posiziona nella terza colonna */
+            grid-row: 1;    /* Posiziona nella prima riga */
+            background-color: var(--card-background);
+            border: 2px dashed var(--text-light); /* Stile visivo per distinguere */
+            border-radius: 16px;
+            height: 200px; /* Altezza fissa */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        .study-unknown-button {
+    background-color: #dd9528; /* Colore più vivace */
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+        .study-unknown-button:hover {
+            background-color: #f5a867;
+        }
+        
+        
+
+.slide-icon {
+    font-size: 32px;
+    margin-bottom: 15px;
+    color: #f5a623; /* Colore più accattivante */
+}
+
+.slide-title {
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-align: center;
+    color: var(--text);
+}
+
+.slide-description {
+    font-size: 14px;
+    text-align: center;
+    color: var(--text-light);
+    margin-bottom: 20px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+
+
+.study-unknown-button:hover {
+    background-color: #e68900;
+    transform: translateY(-2px);
+}
+/* Stili per le barre di progresso personalizzate */
+.progress-container {
+    margin-top: auto; /* Spinge la barra di progresso verso il basso */
+    font-size: 14px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.set-name {
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.progress-bar-container {
+    width: 100%; /* Rendi le barre di progresso più larghe */
+    margin: 0; /* Centra le barre */
+    height: 14px; /* Aumenta leggermente l'altezza */
+    background-color: var(--gray);
+    border-radius: 8px; /* Arrotonda di più gli angoli */
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a); /* Gradiente verde */
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 3px;
+}
+
+#set-stats-container {
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.tab-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--card-background);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-button.active {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+    text-align: center;
+}
+
+.tab-content.active {
+    display: block;
+}
+    .navigation-arrows {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    .arrow-button {
+        background-color: var(--card-background);
+        color: var(--text);
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .arrow-button:hover {
+        background-color: var(--sidebar-hover);
+    }
+    #set-stats-container .progress-container {
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    background-color: var(--card-background);
+    border-radius: 8px;
+}
+
+#set-stats-container .progress-bar-container {
+    width: 100%;
+    margin: 5px 0;
+}
+
+#set-stats-container .progress-stats {
+    font-size: 12px;
+    color: var(--text-light);
+}
+#stats-chart {
+    max-width: 100%;
+    max-height: 150px;
+    margin: 0 auto;
+    display: block;
+}
+/* Stile per il pulsante "Study Deck" */
+.study-set-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.study-set-button {
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background-color: var(--primary);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.study-set-button:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Search results styles */
+.search-result {
+  margin-bottom: 20px;
+}
+
+.search-sets, .search-cards {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.search-sets h4, .search-cards h4 {
+  color: var(--text-light);
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.search-item {
+  padding: 5px 0;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.search-item:hover {
+  color: var(--primary);
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-light);
+}
+
+.search-results-container {
+    padding: 20px;
+    margin-top: 80px;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.search-result-item {
+    padding: 15px;
+    border-bottom: 1px solid var(--gray);
+    cursor: pointer;
+}
+
+.search-result-item:hover {
+    background-color: var(--gray);
+    border-radius: 8px;
+}
+
+.search-result-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.search-result-content {
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.search-type-label {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: var(--primary);
+    color: white;
+    font-size: 12px;
+    margin-right: 8px;
+}
+</style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="logo-circle">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="app-name">NomeApp</div>
+        </div>
+        <div class="search-profile">
+            <input type="text" class="search-bar" placeholder="Search...">
+            <div class="crown">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="profile-icon" id="profile-menu-button">
+                <i class="fas fa-user"></i>
+            </div>
+            
+            <!-- Profile dropdown menu -->
+            <div class="profile-dropdown" id="profile-dropdown" style="display: none;">
+                <div class="dropdown-item" id="username-display">Username</div>
+                <div class="dropdown-item" id="logout-button">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Aggiungi questa nuova sezione dopo l'header -->
+<div class="search-results-container" style="display: none;">
+    <div class="search-results">
+        <!-- I risultati della ricerca verranno inseriti qui -->
+    </div>
+</div>
+
+    <!-- Deck Header -->
+    <div class="deck-header">
+        <div class="back-button" id="back-button">
+            <i class="fas fa-arrow-left"></i>
+            <span style="margin-left: 8px;">Home</span>
+        </div>
+        <h1 class="deck-title" id="deck-title"></h1>
+        <div class="deck-actions">
+            
+            <div class="action-button" id="edit-button" title="Edit deck">
+                <i class="fas fa-edit"></i>
+            </div>
+            <div class="action-button delete" id="delete-button" title="Delete deck">
+                <i class="fas fa-trash"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Set Button -->
+    <div class="add-deck-container" id="add-set-button">
+        <div class="add-circle">
+            <i class="fas fa-plus"></i>
+        </div>
+        <div class="add-deck-button">Add new set</div>
+    </div>
+    
+    <!-- Sets Container -->
+    <div class="sets-container" id="sets-container">
+        <div class="no-sets">No sets available. Add your first set!</div>
+        <!-- Nuovo container vuoto per la terza flashcard -->
+        <div class="set-card fixed-container">
+    <div class="tab-container">
+        <div class="tab-content active" id="tab-1">
+            <div class="slide-icon">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <div class="slide-title">Concentrati sulle tue difficoltà</div>
+            <div class="slide-description">
+                Rivedi le flashcard che non sai di questo deck  e migliora le tue conoscenze.
+            </div>
+            <div class="button-container">
+                <button class="study-unknown-button">
+                    <i class="fas fa-play"></i> Inizia a studiare
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+        
+    </div>
+    
+    <!-- Aggiungi questo codice sotto il contenitore dei set -->
+<div class="study-set-container">
+    <button class="study-set-button" id="study-deck-button">Study deck</button>
+</div>
+    
+    <!-- Add Set Modal -->
+    <div class="modal" id="add-set-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Create new set</h2>
+            <form id="add-set-form">
+                <div class="form-group">
+                    <input type="text" id="set-name" class="form-input" placeholder="Enter set name" required>
+                </div>
+                <button type="submit" class="auth-button">Create set</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="delete-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Confirm deletion</h2>
+            <p style="margin-bottom: 20px;">Are you sure you want to delete this set? All flashcards inside will be deleted.</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="auth-button" id="cancel-delete" style="background-color: var(--gray);">Cancel</button>
+                <button class="auth-button" id="confirm-delete" style="background-color: #dc3545;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale per modificare il nome del set -->
+    <div class="modal" id="edit-set-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Edit set name</h2>
+            <form id="edit-set-form">
+                <div class="form-group">
+                    <input type="text" id="edit-set-name" class="form-input" placeholder="Enter new set name" required>
+                </div>
+                <button type="submit" class="auth-button">Save changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_URL = '/api';
+        let currentDeckId = '';
+        let currentSets = [];
+        let currentEditSetId = null;
+
+        // Verifica autenticazione e carica i dati
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            currentDeckId = urlParams.get('id');
+            
+            if (!currentDeckId) {
+                alert('Missing deck ID!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            loadDeckDetails();
+            loadSets();
+            setupEventListeners();
+        });
+// Set up event listeners for the action buttons
+document.querySelectorAll('.carousel-slide button').forEach((button, index) => {
+    button.addEventListener('click', () => {
+        switch(index) {
+            case 0:
+                window.location.href = `flashcard.html?deckId=${currentDeckId}&mode=unknown`;
+                break;
+            case 1:
+                // Aggiungi qui la logica per la modalità ripasso
+                alert('Modalità Ripasso selezionata');
+                break;
+            case 2:
+                // Aggiungi qui la logica per la modalità esame
+                alert('Modalità Esame selezionata');
+                break;
+        }
+    });
+});
+        
+        // Carica i dettagli del deck
+        async function loadDeckDetails() {
+            try {
+                const response = await fetch(`${API_URL}/decks/${currentDeckId}`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error loading deck');
+                
+                const deckData = await response.json();
+                document.getElementById('deck-title').textContent = deckData.subject || 'Untitled';
+                document.title = `${deckData.subject || 'Mazzo'} - NomeApp`;
+                
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        }
+        
+        // Carica i set del deck
+async function loadSets() {
+    try {
+        const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets`, {
+            headers: {
+                'x-auth-token': localStorage.getItem('token')
+            }
+        });
+
+        if (!response.ok) throw new Error('Error loading sets');
+
+        currentSets = await response.json();
+        displaySets(currentSets);
+        
+        // Carica le statistiche iniziali
+
+    } catch (error) {
+        console.error('Errore:', error);
+        document.getElementById('sets-container').innerHTML =
+            '<div class="no-sets">Error loading sets. Please try again later.</div>';
+    }
+}
+
+
+
+
+        
+                // Visualizza i set
+        function displaySets(sets) {
+    const container = document.getElementById('sets-container');
+    
+    // Salva il carosello prima di svuotare il container
+    const carousel = container.querySelector('.fixed-container');
+    
+    // Svuota il container mantenendo il carosello
+    container.innerHTML = '';
+    if (carousel) {
+        container.appendChild(carousel);
+    }
+
+    // Aggiungi i set
+    if (!sets || sets.length === 0) {
+        const noSetsMessage = document.createElement('div');
+        noSetsMessage.className = 'no-sets';
+        noSetsMessage.textContent = 'No sets available. Add your first set!';
+        container.appendChild(noSetsMessage);
+        return;
+    }
+
+    sets.forEach(async (set) => {
+        const setElement = document.createElement('div');
+        setElement.className = 'set-card';
+        setElement.dataset.setId = set._id;
+        setElement.innerHTML = `
+            <h3>${set.name}</h3>
+            <div class="progress-container">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: 0%;"></div>
+                </div>
+                <div class="progress-stats">
+                    <span>0 conosciute • 0 da studiare</span>
+                </div>
+            </div>
+        `;
+
+        
+
+        
+
+        setElement.addEventListener('click', () => {
+            window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
+        });
+
+        container.appendChild(setElement);
+
+        // Aggiorna la barra di progresso con i dati reali
+        try {
+            const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${set._id}/stats`, {
+                headers: {
+                    'x-auth-token': localStorage.getItem('token')
+                }
+            });
+
+            if (!response.ok) throw new Error(`Errore nel caricamento delle statistiche per il set ${set.name}`);
+
+            const stats = await response.json();
+            const knownCount = stats.known || 0;
+            const unknownCount = stats.unknown || 0;
+            const totalCards = knownCount + unknownCount;
+            const progressPercentage = totalCards > 0 ? Math.round((knownCount / totalCards) * 100) : 0;
+
+            const progressBar = setElement.querySelector('.progress-bar');
+            const progressStats = setElement.querySelector('.progress-stats');
+
+            progressBar.style.width = `${progressPercentage}%`;
+            progressStats.innerHTML = `
+                <span>${knownCount} conosciute • ${unknownCount} da studiare</span>
+            `;
+        } catch (error) {
+            console.error('Errore nel caricamento delle statistiche per set:', error);
+        }
+    });
+}
+        // Funzione per eliminare un set
+        async function deleteSet(setId) {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${setId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error deleting set');
+                
+                alert('Set succesfully deleted!');
+                currentSets = currentSets.filter(set => set._id !== setId);
+                displaySets(currentSets);
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        }
+
+        // Apri il modale per modificare il set
+        function openEditSetModal(setId, setName) {
+            currentEditSetId = setId;
+            document.getElementById('edit-set-name').value = setName;
+            document.getElementById('edit-set-modal').style.display = 'flex';
+        }
+
+        // Gestisci il form per modificare il set
+        document.getElementById('edit-set-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newName = document.getElementById('edit-set-name').value;
+
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentEditSetId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ name: newName })
+                });
+
+                if (!response.ok) throw new Error('Error editing set');
+
+                const updatedSet = await response.json();
+
+                // Aggiorna il set nella lista corrente
+                currentSets = currentSets.map(set => set._id === updatedSet._id ? updatedSet : set);
+                displaySets(currentSets);
+
+                // Chiudi il modale
+                document.getElementById('edit-set-modal').style.display = 'none';
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        });
+
+        // Chiudi il modale per la modifica
+        document.querySelector('#edit-set-modal .close-modal').addEventListener('click', () => {
+            document.getElementById('edit-set-modal').style.display = 'none';
+        });
+
+
+
+function updateTabVisibility() {
+    const tabs = document.querySelectorAll('.tab-content');
+    const buttons = document.querySelectorAll('.tab-button');
+    
+    // Mostra il primo tab all'avvio
+    if (tabs.length > 0) {
+        tabs[0].classList.add('active');
+    }
+    if (buttons.length > 0) {
+        buttons[0].classList.add('active');
+    }
+}
+
+
+
+// Search functionality
+function setupSearch() {
+    const searchInput = document.querySelector('.search-bar');
+    const deckHeader = document.querySelector('.deck-header');
+    const addDeckContainer = document.querySelector('.add-deck-container');
+    const setsContainer = document.querySelector('.sets-container');
+    const searchResultsContainer = document.querySelector('.search-results-container');
+    const studyDeckContainer = document.querySelector('.study-set-container'); // Aggiungi questa riga
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        
+        const query = e.target.value.trim();
+        
+        if (query.length > 0) {
+            // Nascondi il contenuto principale
+            deckHeader.style.display = 'none';
+            addDeckContainer.style.display = 'none';
+            setsContainer.style.display = 'none';
+            studyDeckContainer.style.display = 'none'; // Aggiungi questa riga
+            
+            // Mostra il contenitore dei risultati
+            searchResultsContainer.style.display = 'block';
+            
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 300);
+        } else {
+            // Mostra il contenuto principale
+            deckHeader.style.display = 'flex';
+            addDeckContainer.style.display = 'flex';
+            setsContainer.style.display = 'grid';
+            studyDeckContainer.style.display = 'flex'; // Aggiungi questa riga
+            
+            // Nascondi i risultati
+            searchResultsContainer.style.display = 'none';
+        }
+    });
+}
+
+async function performSearch(query) {
+    const token = localStorage.getItem('token');
+    const searchResultsContainer = document.querySelector('.search-results');
+    
+    try {
+        const response = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`, {
+            headers: {
+                'x-auth-token': token
+            }
+        });
+        
+        if (!response.ok) throw new Error('Search failed');
+        
+        const results = await response.json();
+        searchResultsContainer.innerHTML = '';
+        
+        if (results.length === 0) {
+            searchResultsContainer.innerHTML = `
+                <div class="no-results">
+                    Nessun risultato trovato per "${query}"
+                </div>`;
+            return;
+        }
+        
+        results.forEach(result => {
+            // Per ogni deck
+            if (result.deckName.toLowerCase().includes(query.toLowerCase())) {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='deck.html?id=${result.deckId}'">
+                        <span class="search-type-label">Deck</span>
+                        <div class="search-result-title">${result.deckName}</div>
+                    </div>`;
+            }
+            
+            // Per ogni set nel deck
+            result.sets.forEach(set => {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='set.html?deckId=${result.deckId}&setId=${set._id}'">
+                        <span class="search-type-label">Set</span>
+                        <div class="search-result-title">${set.name}</div>
+                        <div class="search-result-content">in ${result.deckName}</div>
+                    </div>`;
+            });
+            
+            // Per ogni card nel deck
+            result.cards.forEach(card => {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='set.html?deckId=${result.deckId}&setId=${card.set}'">
+                        <span class="search-type-label">Card</span>
+                        <div class="search-result-title">${card.question.substring(0, 100)}</div>
+                        <div class="search-result-content">in ${result.deckName}${card.setName ? `, ${card.setName}` : ''}</div>
+                    </div>`;
+            });
+        });
+        
+    } catch (error) {
+        console.error('Error during search:', error);
+        searchResultsContainer.innerHTML = `
+            <div class="error-message">
+                Errore durante la ricerca. Riprova più tardi.
+            </div>`;
+    }
+}
+
+        function setupEventListeners() {
+    // Pulsante indietro
+    document.getElementById('back-button').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+    
+    // Pulsante aggiungi set
+    document.getElementById('add-set-button').addEventListener('click', () => {
+        document.getElementById('add-set-modal').style.display = 'flex';
+    });
+    
+    // Form per creare set
+    document.getElementById('add-set-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const setName = document.getElementById('set-name').value;
+        
+        try {
+            const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': localStorage.getItem('token')
+                },
+                body: JSON.stringify({ name: setName })
+            });
+            
+            if (!response.ok) throw new Error('Error creating set');
+            
+            const newSet = await response.json();
+            currentSets.push(newSet);
+            displaySets(currentSets);
+            document.getElementById('add-set-modal').style.display = 'none';
+            document.getElementById('add-set-form').reset();
+            
+        } catch (error) {
+            console.error('Errore:', error);
+            alert(`Errore: ${error.message}`);
+        }
+    });
+    
+    // Pulsante elimina deck
+    document.getElementById('delete-button').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to delete this deck and all its sets? This action cannot be undone.')) {
+            try {
+                const response = await fetch(`${API_URL}/decks/${currentDeckId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error deleting deck');
+                
+                alert('Deck successfully deleted!');
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        }
+    });
+    
+    // Chiudi modali
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('add-set-modal').style.display = 'none';
+            document.getElementById('delete-modal').style.display = 'none';
+            document.getElementById('edit-set-modal').style.display = 'none';
+        });
+    });
+    
+    // Logout
+    document.getElementById('logout-button').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'login.html';
+    });
+    
+    // Menu profilo
+    const profileButton = document.getElementById('profile-menu-button');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    profileButton.addEventListener('click', () => {
+        profileDropdown.style.display = profileDropdown.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!profileButton.contains(e.target)) {
+            profileDropdown.style.display = 'none';
+        }
+    });
+
+    // Pulsante per studiare le flashcard non conosciute
+    document.querySelector('.study-unknown-button').addEventListener('click', () => {
+        window.location.href = `flashcard.html?deckId=${currentDeckId}&mode=unknown`;
+    });
+
+    
+
+    
+
+ 
+
+    // Pulsante per modificare il deck
+    document.getElementById('edit-button').addEventListener('click', () => {
+        // Implementa la logica per modificare il deck qui
+        alert('Edit deck functionality to be implemented');
+    });
+
+    // Inizializza la visibilità dei tab
+    updateTabVisibility();
+    setupSearch(); // Aggiungi questa riga
+
+}
+       
+        
+document.getElementById('study-deck-button').addEventListener('click', () => {
+    if (!currentDeckId) {
+        alert('Deck ID mancante!');
+        return;
+    }
+    
+
+    // Reindirizzamento al sito di test
+    window.location.href = `flashcard.html?deckId=${currentDeckId}`;});
+    </script>
+</body>
+</html>

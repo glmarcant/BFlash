@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NomeApp - Flashcard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Stili specifici per la pagina dei set */
+        .set-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background-color: var(--card-background);
+            transition: all 0.2s;
+        }
+        
+        .back-button:hover {
+            background-color: var(--sidebar-hover);
+            transform: translateX(-2px);
+        }
+        
+        .set-title {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .set-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+        
+        .action-button.delete:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        
+        /* Stili per le flashcard */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+            .card-item {
+                background-color: var(--card-background);
+                border-radius: 16px;
+                padding: 20px;
+                box-shadow: 0 4px 12px var(--shadow-color);
+                transition: all 0.2s;
+                position: relative;
+        
+                /* Centrare il contenuto */
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                height: 300px; /* Altezza fissa per uniformità */
+            }
+        
+            .card-item h3 {
+                margin: 0;
+                font-size: 18px;
+                color: var(--text);
+                text-align: center;
+                flex-grow: 1; /* Permette al titolo di occupare lo spazio centrale */
+                display: flex;
+                align-items: center; /* Centra verticalmente il testo */
+                justify-content: center; /* Centra orizzontalmente il testo */
+            }
+        
+            .card-item p {
+                display: none; /* Nascondi il testo aggiuntivo */
+            }
+        
+            .card-actions {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                display: flex;
+                gap: 8px;
+            }
+
+        .card-actions .action-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .card-actions .action-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .card-actions .action-button.delete:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        
+        .no-cards {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        /* Modali */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: var(--card-background);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--gray);
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+        
+        /* Modal per lo studio delle flashcard */
+        .study-modal-content {
+            background-color: var(--card-background);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            text-align: center;
+        }
+        
+        .card-content {
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+        
+        .study-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        
+        .show-answer {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .next-card {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .study-set-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .study-set-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .study-set-button:hover {
+            background-color: var(--primary-dark);
+        }
+        /* Search results styles */
+.search-result {
+  margin-bottom: 20px;
+}
+
+.search-sets, .search-cards {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.search-sets h4, .search-cards h4 {
+  color: var(--text-light);
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.search-item {
+  padding: 5px 0;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.search-item:hover {
+  color: var(--primary);
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-light);
+}
+
+.search-results-container {
+    padding: 20px;
+    margin-top: 80px;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.search-result-item {
+    padding: 15px;
+    border-bottom: 1px solid var(--gray);
+    cursor: pointer;
+}
+
+.search-result-item:hover {
+    background-color: var(--gray);
+    border-radius: 8px;
+}
+
+.search-result-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.search-result-content {
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.search-type-label {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: var(--primary);
+    color: white;
+    font-size: 12px;
+    margin-right: 8px;
+}
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="logo-circle">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="app-name">NomeApp</div>
+        </div>
+        <div class="search-profile">
+            <input type="text" class="search-bar" placeholder="Search...">
+            <div class="crown">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="profile-icon" id="profile-menu-button">
+                <i class="fas fa-user"></i>
+            </div>
+            
+            <!-- Profile dropdown menu -->
+            <div class="profile-dropdown" id="profile-dropdown" style="display: none;">
+                <div class="dropdown-item" id="username-display">Username</div>
+                <div class="dropdown-item" id="logout-button">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Aggiungi questa nuova sezione dopo l'header -->
+<div class="search-results-container" style="display: none;">
+    <div class="search-results">
+        <!-- I risultati della ricerca verranno inseriti qui -->
+    </div>
+</div>
+    
+    <!-- Set Header -->
+    <div class="set-header">
+        <div class="back-button" id="back-button">
+            <i class="fas fa-arrow-left"></i>
+            <span style="margin-left: 8px;">Deck</span>
+        </div>
+        <h1 class="set-title" id="set-title">Set</h1>
+        <div class="set-actions">
+            
+            <div class="action-button toggle-answer-button" id="toggle-answer-button" title="Show/Hide answers">
+                <i class="fas fa-eye"></i>
+            </div>
+            <div class="action-button" id="edit-button" title="Edit set">
+                <i class="fas fa-edit"></i>
+            </div>
+            <div class="action-button delete" id="delete-button" title="Delete set">
+                <i class="fas fa-trash"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Card Button -->
+    <div class="add-deck-container" id="add-card-button">
+        <div class="add-circle">
+            <i class="fas fa-plus"></i>
+        </div>
+        <div class="add-deck-button">Add flashcard</div>
+    </div>
+    
+    <!-- Cards Container -->
+    <div class="cards-container" id="cards-container">
+        <div class="no-cards">Nessuna flashcard presente. Aggiungi la tua prima flashcard!</div>
+    </div>
+    
+    <!-- Add Card Modal -->
+    <div class="modal" id="add-card-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Crea nuova flashcard</h2>
+            <form id="add-card-form">
+                <div class="form-group">
+                    <input type="text" id="card-question" class="form-input" placeholder="Domanda" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="card-answer" class="form-input" placeholder="Risposta" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="auth-button">Crea flashcard</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Card Modal -->
+    <div class="modal" id="edit-card-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Edit flashcard</h2>
+            <form id="edit-card-form">
+                <div class="form-group">
+                    <input type="text" id="edit-card-question" class="form-input" placeholder="Domanda" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="edit-card-answer" class="form-input" placeholder="Risposta" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="auth-button">Salva modifiche</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="delete-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Conferma eliminazione</h2>
+            <p style="margin-bottom: 20px;">Sei sicuro di voler eliminare questa flashcard?</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="auth-button" id="cancel-delete" style="background-color: var(--gray);">Annulla</button>
+                <button class="auth-button" id="confirm-delete" style="background-color: #dc3545;">Elimina</button>
+            </div>
+        </div>
+    </div>
+    
+    
+
+    <div class="study-set-container">
+        <button class="study-set-button" id="study-set-button">Study set</button>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_URL = '/api';
+        let currentDeckId = '';
+        let currentSetId = '';
+        let currentCards = [];
+        let currentEditCardId = null;
+        let currentDeleteCardId = null;
+        let studyModeIndex = 0;
+        let showingAnswer = false;
+
+        // Verifica autenticazione e carica i dati
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            currentDeckId = urlParams.get('deckId');
+            currentSetId = urlParams.get('setId');
+            
+            if (!currentDeckId || !currentSetId) {
+                alert('ID mazzo o set mancante!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            loadSetDetails();
+            loadCards();
+            setupEventListeners();
+        });
+        
+        // Carica i dettagli del set
+        async function loadSetDetails() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Errore nel caricamento del set');
+                
+                const setData = await response.json();
+                document.getElementById('set-title').textContent = setData.name || 'Senza titolo';
+                document.title = `${setData.name || 'Set'} - NomeApp`;
+                
+            } catch (error) {
+                console.error('Errore:', error);
+                alert(`Errore: ${error.message}`);
+            }
+        }
+        
+        // Carica le flashcard del set
+        async function loadCards() {
+            try {
+                const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Errore nel caricamento delle flashcard');
+
+                currentCards = await response.json();
+                displayCards(currentCards);
+
+            } catch (error) {
+                console.error('Errore:', error);
+                document.getElementById('cards-container').innerHTML =
+                    '<div class="no-cards">Errore nel caricamento delle flashcard. Riprova più tardi.</div>';
+            }
+        }
+        
+        // Visualizza le flashcard
+        function displayCards(cards) {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            if (!cards || cards.length === 0) {
+                container.innerHTML = '<div class="no-cards">Nessuna flashcard presente. Aggiungi la tua prima flashcard!</div>';
+                return;
+            }
+
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card-item';
+                cardElement.dataset.cardId = card._id;
+                cardElement.innerHTML = `
+                    <div class="card-actions">
+                        <div class="action-button edit" title="Edit flashcard">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="action-button delete" title="Elimina flashcard">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                    </div>
+                    <h3>${card.question}</h3>
+                    <p>${card.answer.substring(0, 50)}${card.answer.length > 50 ? '...' : ''}</p>
+                `;
+
+                // Event listener per modifica
+                cardElement.querySelector('.edit').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openEditCardModal(card._id, card.question, card.answer);
+                });
+
+                // Event listener per eliminazione
+                cardElement.querySelector('.delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentDeleteCardId = card._id;
+                    document.getElementById('delete-modal').style.display = 'flex';
+                });
+
+                container.appendChild(cardElement);
+            });
+        }
+
+        // Apri il modale per modificare la flashcard
+        function openEditCardModal(cardId, question, answer) {
+            currentEditCardId = cardId;
+            document.getElementById('edit-card-question').value = question;
+            document.getElementById('edit-card-answer').value = answer;
+            document.getElementById('edit-card-modal').style.display = 'flex';
+        }
+// Search functionality
+function setupSearch() {
+    const searchInput = document.querySelector('.search-bar');
+    const setHeader = document.querySelector('.set-header');
+    const addDeckContainer = document.querySelector('.add-deck-container');
+    const cardsContainer = document.querySelector('.cards-container');
+    const searchResultsContainer = document.querySelector('.search-results-container');
+    const studySetContainer = document.querySelector('.study-set-container'); // Aggiungi questa riga
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        
+        const query = e.target.value.trim();
+        
+        if (query.length > 0) {
+            // Nascondi il contenuto principale
+            setHeader.style.display = 'none';
+            addDeckContainer.style.display = 'none';
+            cardsContainer.style.display = 'none';
+            studySetContainer.style.display = 'none'; // Nascondi il pulsante Study set
+            
+            // Mostra il contenitore dei risultati
+            searchResultsContainer.style.display = 'block';
+            
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 300);
+        } else {
+            // Mostra il contenuto principale
+            setHeader.style.display = 'flex';
+            addDeckContainer.style.display = 'flex';
+            cardsContainer.style.display = 'grid';
+            studySetContainer.style.display = 'flex'; // Mostra il pulsante Study set
+            
+            // Nascondi i risultati
+            searchResultsContainer.style.display = 'none';
+        }
+    });
+}
+
+async function performSearch(query) {
+    const token = localStorage.getItem('token');
+    const searchResultsContainer = document.querySelector('.search-results');
+    
+    try {
+        const response = await fetch(`${API_URL}/search?query=${encodeURIComponent(query)}`, {
+            headers: {
+                'x-auth-token': token
+            }
+        });
+        
+        if (!response.ok) throw new Error('Search failed');
+        
+        const results = await response.json();
+        searchResultsContainer.innerHTML = '';
+        
+        if (results.length === 0) {
+            searchResultsContainer.innerHTML = `
+                <div class="no-results">
+                    Nessun risultato trovato per "${query}"
+                </div>`;
+            return;
+        }
+        
+        results.forEach(result => {
+            // Per ogni deck
+            if (result.deckName.toLowerCase().includes(query.toLowerCase())) {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='deck.html?id=${result.deckId}'">
+                        <span class="search-type-label">Deck</span>
+                        <div class="search-result-title">${result.deckName}</div>
+                    </div>`;
+            }
+            
+            // Per ogni set nel deck
+            result.sets.forEach(set => {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='set.html?deckId=${result.deckId}&setId=${set._id}'">
+                        <span class="search-type-label">Set</span>
+                        <div class="search-result-title">${set.name}</div>
+                        <div class="search-result-content">in ${result.deckName}</div>
+                    </div>`;
+            });
+            
+            // Per ogni card nel deck
+            result.cards.forEach(card => {
+                searchResultsContainer.innerHTML += `
+                    <div class="search-result-item" onclick="window.location.href='set.html?deckId=${result.deckId}&setId=${card.set}'">
+                        <span class="search-type-label">Card</span>
+                        <div class="search-result-title">${card.question.substring(0, 100)}</div>
+                        <div class="search-result-content">in ${result.deckName}${card.setName ? `, ${card.setName}` : ''}</div>
+                    </div>`;
+            });
+        });
+        
+    } catch (error) {
+        console.error('Error during search:', error);
+        searchResultsContainer.innerHTML = `
+            <div class="error-message">
+                Errore durante la ricerca. Riprova più tardi.
+            </div>`;
+    }
+}
+        // Configura gli event listener
+        function setupEventListeners() {
+            // Pulsante indietro
+            document.getElementById('back-button').addEventListener('click', () => {
+                window.location.href = `deck.html?id=${currentDeckId}`;
+            });
+            
+            // Pulsante aggiungi flashcard
+            document.getElementById('add-card-button').addEventListener('click', () => {
+                document.getElementById('add-card-modal').style.display = 'flex';
+            });
+            
+            // Form per creare flashcard
+            document.getElementById('add-card-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const question = document.getElementById('card-question').value;
+                const answer = document.getElementById('card-answer').value;
+                
+                try {
+                    const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-auth-token': localStorage.getItem('token')
+                        },
+                        body: JSON.stringify({ question, answer })
+                    });
+                    
+                    if (!response.ok) throw new Error('Errore nella creazione della flashcard');
+                    
+                    const newCard = await response.json();
+                    currentCards.push(newCard);
+                    displayCards(currentCards);
+                    document.getElementById('add-card-modal').style.display = 'none';
+                    document.getElementById('add-card-form').reset();
+                    
+                } catch (error) {
+                    console.error('Errore:', error);
+                    alert(`Errore: ${error.message}`);
+                }
+            });
+            
+            // Form per modificare flashcard
+            document.getElementById('edit-card-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const question = document.getElementById('edit-card-question').value;
+                const answer = document.getElementById('edit-card-answer').value;
+                
+                try {
+                    const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${currentEditCardId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-auth-token': localStorage.getItem('token')
+                        },
+                        body: JSON.stringify({ question, answer })
+                    });
+                    
+                    if (!response.ok) throw new Error('Errore nella modifica della flashcard');
+                    
+                    const updatedCard = await response.json();
+                    
+                    // Aggiorna la flashcard nella lista corrente
+                    currentCards = currentCards.map(card => card._id === updatedCard._id ? updatedCard : card);
+                    displayCards(currentCards);
+                    
+                    // Chiudi il modale
+                    document.getElementById('edit-card-modal').style.display = 'none';
+                } catch (error) {
+                    console.error('Errore:', error);
+                    alert(`Errore: ${error.message}`);
+                }
+            });
+            
+            // Pulsante elimina set
+            document.getElementById('delete-button').addEventListener('click', async () => {
+                if (confirm('Sei sicuro di voler eliminare questo set e tutte le sue flashcard? Questa azione non può essere annullata.')) {
+                    try {
+                        const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'x-auth-token': localStorage.getItem('token')
+                            }
+                        });
+                        
+                        if (!response.ok) throw new Error('Errore nell\'eliminazione del set');
+                        
+                        alert('Set eliminato con successo!');
+                        window.location.href = `deck.html?id=${currentDeckId}`;
+                        
+                    } catch (error) {
+                        console.error('Errore:', error);
+                        alert(`Errore: ${error.message}`);
+                    }
+                }
+            });
+            
+            // Pulsante conferma eliminazione
+            document.getElementById('confirm-delete').addEventListener('click', async () => {
+                try {
+                    const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${currentDeleteCardId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'x-auth-token': localStorage.getItem('token')
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Errore nell\'eliminazione della flashcard');
+                    
+                    currentCards = currentCards.filter(card => card._id !== currentDeleteCardId);
+                    displayCards(currentCards);
+                    document.getElementById('delete-modal').style.display = 'none';
+                    currentDeleteCardId = null;
+                    
+                } catch (error) {
+                    console.error('Errore:', error);
+                    alert(`Errore: ${error.message}`);
+                }
+            });
+            
+            // Pulsante annulla eliminazione
+            document.getElementById('cancel-delete').addEventListener('click', () => {
+                document.getElementById('delete-modal').style.display = 'none';
+                currentDeleteCardId = null;
+            });
+            
+            // Pulsante modifica set
+            document.getElementById('edit-button').addEventListener('click', async () => {
+                const newName = prompt('Inserisci il nuovo nome del set:', document.getElementById('set-title').textContent);
+                
+                if (newName && newName.trim() !== '') {
+                    try {
+                        const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-auth-token': localStorage.getItem('token')
+                            },
+                            body: JSON.stringify({ name: newName })
+                        });
+                        
+                        if (!response.ok) throw new Error('Errore nella modifica del set');
+                        
+                        const updatedSet = await response.json();
+                        document.getElementById('set-title').textContent = updatedSet.name;
+                        
+                    } catch (error) {
+                        console.error('Errore:', error);
+                        alert(`Errore: ${error.message}`);
+                    }
+                }
+            });
+            
+            
+            
+            
+            
+            
+            
+            // Chiudi modali
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('add-card-modal').style.display = 'none';
+                    document.getElementById('edit-card-modal').style.display = 'none';
+                    document.getElementById('delete-modal').style.display = 'none';
+                });
+            });
+            
+            // Logout
+            document.getElementById('logout-button').addEventListener('click', () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            });
+            
+            // Menu profilo
+            const profileButton = document.getElementById('profile-menu-button');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            
+            profileButton.addEventListener('click', () => {
+                profileDropdown.style.display = profileDropdown.style.display === 'none' ? 'block' : 'none';
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!profileButton.contains(e.target)) {
+                    profileDropdown.style.display = 'none';
+                }
+            });
+
+            // Pulsante per studiare il set
+            document.getElementById('study-set-button').addEventListener('click', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const deckId = urlParams.get('deckId');
+                const setId = urlParams.get('setId');
+
+                if (!deckId || !setId) {
+                    alert('ID mazzo o set mancante!');
+                    return;
+                }
+
+                // Reindirizza alla pagina flashcard.html con i parametri deckId e setId
+                window.location.href = `flashcard.html?deckId=${deckId}&setId=${setId}`;
+            });
+
+            // Pulsante mostra/nascondi risposte
+            document.getElementById('toggle-answer-button').addEventListener('click', () => {
+                const answers = document.querySelectorAll('.card-item p');
+                const icon = document.querySelector('#toggle-answer-button i');
+
+                answers.forEach(answer => {
+                    if (answer.style.display === 'none' || answer.style.display === '') {
+                        answer.style.display = 'block'; // Mostra la risposta
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        answer.style.display = 'none'; // Nascondi la risposta
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+            setupSearch(); // Aggiungi questa riga
+
+        }
+        
+        
+    </script>
+</body>
+</html>
