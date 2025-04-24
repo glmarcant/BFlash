@@ -466,7 +466,7 @@
                 window.location.href = 'login.html';
                 return;
             }
-            
+            loadUserProfile()
             const urlParams = new URLSearchParams(window.location.search);
             currentDeckId = urlParams.get('deckId');
             currentSetId = urlParams.get('setId');
@@ -481,6 +481,15 @@
             loadCards();
             setupEventListeners();
         });
+        // Load user profile
+        function loadUserProfile() {
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            // Update username display with stored username
+            if (storedUser.username) {
+                document.getElementById('username-display').textContent = storedUser.username;
+            }
+        }
         
         // Carica i dettagli del set
         async function loadSetDetails() {

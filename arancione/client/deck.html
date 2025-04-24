@@ -647,6 +647,8 @@
                 window.location.href = 'login.html';
                 return;
             }
+            // Load user profile
+            loadUserProfile();
             
             const urlParams = new URLSearchParams(window.location.search);
             currentDeckId = urlParams.get('id');
@@ -679,6 +681,15 @@ document.querySelectorAll('.carousel-slide button').forEach((button, index) => {
         }
     });
 });
+// Load user profile
+function loadUserProfile() {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Update username display with stored username
+    if (storedUser.username) {
+        document.getElementById('username-display').textContent = storedUser.username;
+    }
+}
         
         // Carica i dettagli del deck
         async function loadDeckDetails() {
