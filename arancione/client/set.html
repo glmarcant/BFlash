@@ -536,13 +536,15 @@
         // Visualizza le flashcard
         function displayCards(cards) {
             const container = document.getElementById('cards-container');
+            const studySetButton = document.querySelector('.study-set-container');
             container.innerHTML = '';
 
             if (!cards || cards.length === 0) {
                 container.innerHTML = '<div class="no-cards">Nessuna flashcard presente. Aggiungi la tua prima flashcard!</div>';
+                studySetButton.style.display = 'none';
                 return;
             }
-
+            studySetButton.style.display = 'flex';
             cards.forEach(card => {
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card-item';
