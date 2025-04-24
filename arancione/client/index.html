@@ -432,11 +432,7 @@
                 // Clear loading message
                 decksContainer.innerHTML = '';
                 
-                // Display user decks
-                if (decks.length === 0) {
-                    decksContainer.innerHTML = '<div class="no-decks">You haven’t created any decks yet. Click on the "Add new Deck" button to get started!</div>';
-                    return;
-                }
+                
                 
                 decks.forEach(deck => {
                     const deckElement = document.createElement('div');
