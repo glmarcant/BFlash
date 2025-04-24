@@ -121,6 +121,64 @@
         .back-home:hover {
             color: var(--text);
         }
+
+        .social-login {
+    margin-top: 25px;
+    text-align: center;
+  }
+  
+  .divider {
+    color: #999;
+    margin: 15px 0;
+    position: relative;
+  }
+  
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+    position: absolute;
+    top: 50%;
+    width: 45%;
+  }
+  
+  .divider::before {
+    right: 55%;
+  }
+  
+  .divider::after {
+    left: 55%;
+  }
+  
+  .social-button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #555;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .social-button:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .google-button {
+    color: #DB4437;
+    border-color: #DB4437;
+  }
+  
+  .google-button:hover {
+    background-color: rgba(219, 68, 55, 0.1);
+  }
     </style>
 </head>
 <body>
@@ -154,6 +212,7 @@
             </div>
         </form>
         
+        
         <!-- Registration Form -->
         <form id="registerForm" class="register-form">
             <div class="form-group">
@@ -182,7 +241,12 @@
                 Already have an account? <a id="showLogin">Sign in</a>
             </div>
         </form>
-        
+        <div class="social-login">
+            <p class="divider">or</p>
+            <button id="googleLogin" class="social-button google-button">
+              <i class="fab fa-google"></i> Sign in with Google
+            </button>
+          </div>
     
     </div>
 
@@ -350,6 +414,42 @@
                 document.getElementById('registerError').style.display = 'block';
             }
         });
+        document.getElementById('googleLogin').addEventListener('click', function() {
+    window.location.href = '/api/auth/google';
+  });
+
+  // Gestisci il token quando torni da Google OAuth
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  const user = urlParams.get('user');
+  
+  if (token && user) {
+    try {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', user);
+      
+      // Verifica se c'è un errore nei parametri
+      const error = urlParams.get('error');
+      if (error) {
+        console.error('Google auth error:', error);
+        document.getElementById('loginError').textContent = 'Google authentication failed';
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+      
+      // Reindirizza alla pagina appropriata
+      const userData = JSON.parse(decodeURIComponent(user));
+      if (userData.username && userData.username.startsWith('user')) {
+        window.location.href = `setup-username.html?token=${token}`;
+      } else {
+        window.location.href = 'index.html';
+      }
+    } catch (err) {
+      console.error('Error processing Google auth:', err);
+    }
+  }
+});
     </script>
 </body>
 </html>

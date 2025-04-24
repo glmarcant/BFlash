@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const passport = require('passport');
+const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
 const deckRoutes = require('./routes/deckRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -8,14 +10,25 @@ const cardRoutes = require('./routes/cardRoutes');
 const setRoutes = require('./routes/setRoutes'); 
 const searchRoutes = require('./routes/searchRoutes');
 
+require('./config/passport'); // Importa la configurazione di Passport
+
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json());
-
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/decks', deckRoutes);
