@@ -326,18 +326,35 @@
         
         // Check if user is logged in
         document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('token');
+            // First check URL parameters for token and user data
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get('token');
+    const userParam = urlParams.get('user');
+    
+    if (tokenParam && userParam) {
+        // Store token and user in localStorage
+        localStorage.setItem('token', tokenParam);
+        try {
+            const userData = JSON.parse(decodeURIComponent(userParam));
+            localStorage.setItem('user', JSON.stringify(userData));
             
-            if (!token) {
-                // User not logged in, redirect to login page
-                window.location.href = 'login.html';
-                return;
-            }
+            // Clear URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (err) {
+            console.error('Error processing auth parameters:', err);
+        }
+    }
+            // Now check if token exists in localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+        // User not logged in, redirect to login page
+        window.location.href = 'login.html';
+        return;
+    }
             
             // User is logged in, load user data and decks
             loadUserProfile();
             loadDecks();
-            
             // Setup UI event listeners
             setupEventListeners();
             setupSearch();
