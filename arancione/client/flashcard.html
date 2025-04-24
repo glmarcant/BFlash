@@ -560,19 +560,35 @@ document.getElementById('known-button').addEventListener('click', async () => {
         }
 
         function nextCard() {
-    currentIndex++;
-    if (currentIndex >= currentCards.length) {
-        alert('Hai completato tutte le flashcard! Ricominciamo dall\'inizio.');
-        currentIndex = 0;
-    }
-
-    // Assicurati che la flashcard sia girata sul front
-    const flashcardContainer = document.getElementById('flashcard-container');
-    flashcardContainer.classList.remove('flipped');
-
-    displayCard(); // Mostra la nuova flashcard
-}
-
+            currentIndex++;
+            if (currentIndex >= currentCards.length) {
+                // Ottieni i parametri dall'URL corrente
+                const urlParams = new URLSearchParams(window.location.search);
+                const deckId = urlParams.get('deckId');
+                const setId = urlParams.get('setId');
+                const mode = urlParams.get('mode');
+        
+                // Determina l'URL di reindirizzamento appropriato
+                let redirectUrl;
+                if (setId) {
+                    // Se c'è un setId, vai alla pagina del set
+                    redirectUrl = `set.html?deckId=${deckId}&setId=${setId}`;
+                } else {
+                    // Se c'è solo deckId o mode=unknown, vai alla pagina del deck
+                    redirectUrl = `deck.html?id=${deckId}`;
+                }
+        
+                // Reindirizza l'utente
+                window.location.href = redirectUrl;
+                return;
+            }
+        
+            // Assicurati che la flashcard sia girata sul front
+            const flashcardContainer = document.getElementById('flashcard-container');
+            flashcardContainer.classList.remove('flipped');
+        
+            displayCard(); // Mostra la nuova flashcard
+        }
 document.getElementById('easy-button').addEventListener('click', async () => {
     await updateRepetition(currentCards[currentIndex]._id, 'easy');
     nextCard();
