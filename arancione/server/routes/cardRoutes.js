@@ -5,6 +5,8 @@ const Card = require('../models/Card');
 const Set = require('../models/Set');
 const Deck = require('../models/Deck');
 
+
+
 // Crea una nuova flashcard in un set
 router.post('/:deckId/sets/:setId/cards', auth, async (req, res) => {
   try {
@@ -351,6 +353,62 @@ router.get('/:deckId/repetition-cards', auth, async (req, res) => {
     res.json(cards);
   } catch (err) {
     console.error('Errore nel caricamento delle flashcard per ripetizione:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// Sposta una card in un altro set
+router.put('/:deckId/sets/:setId/cards/:cardId/move', auth, async (req, res) => {
+  try {
+    const { deckId, setId, cardId } = req.params;
+    const { targetDeckId, targetSetId } = req.body;
+
+    // Verifica che il deck e set di origine esistano
+    const sourceDeck = await Deck.findById(deckId);
+    if (!sourceDeck || sourceDeck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Source deck not found or unauthorized' });
+    }
+
+    const sourceSet = await Set.findById(setId);
+    if (!sourceSet || sourceSet.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Source set not found or unauthorized' });
+    }
+
+    // Verifica che il deck e set di destinazione esistano
+    const targetDeck = await Deck.findById(targetDeckId);
+    if (!targetDeck || targetDeck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Target deck not found or unauthorized' });
+    }
+
+    const targetSet = await Set.findById(targetSetId);
+    if (!targetSet || targetSet.deck.toString() !== targetDeckId) {
+      return res.status(404).json({ message: 'Target set not found or unauthorized' });
+    }
+
+    // Trova e aggiorna la card
+    const card = await Card.findById(cardId);
+    if (!card || card.set.toString() !== setId) {
+      return res.status(404).json({ message: 'Card not found or unauthorized' });
+    }
+
+    // Aggiorna i riferimenti della card
+    card.set = targetSetId;
+    card.deck = targetDeckId;
+    await card.save();
+
+    // Rimuovi la card dal set di origine
+    sourceSet.cards = sourceSet.cards.filter(id => id.toString() !== cardId);
+    await sourceSet.save();
+
+    // Aggiungi la card al set di destinazione
+    targetSet.cards.push(cardId);
+    await targetSet.save();
+
+    res.json({ message: 'Card moved successfully', card });
+
+  } catch (err) {
+    console.error('Error moving card:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });

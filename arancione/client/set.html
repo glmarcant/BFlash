@@ -489,7 +489,27 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Move Card Modal -->
+<div class="modal" id="move-card-modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Sposta flashcard</h2>
+        <div class="form-group">
+            <label class="form-label">Seleziona il deck</label>
+            <select id="target-deck-select" class="form-input">
+                <option value="">Seleziona un deck...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Seleziona il set</label>
+            <select id="target-set-select" class="form-input" disabled>
+                <option value="">Seleziona prima un deck...</option>
+            </select>
+        </div>
+        <button id="move-card-button" class="auth-button" disabled>Sposta flashcard</button>
+    </div>
+</div>
     
 
     <div class="study-set-container">
@@ -647,10 +667,13 @@
                     menu.style.display = 'none';
                 });
         
-                cardElement.querySelector('.card-menu-item.move').addEventListener('click', (e) => {
+                cardElement.querySelector('.card-menu-item.move').addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    // Per ora non fa nulla
-                    console.log('Move card:', card._id);
+                    currentMoveCardId = card._id;
+                    await loadDecksForMove();
+                    document.getElementById('move-card-modal').style.display = 'flex';
+                    document.getElementById('target-set-select').disabled = true;
+                    document.getElementById('move-card-button').disabled = true;
                     menu.style.display = 'none';
                 });
         
@@ -944,6 +967,7 @@ async function performSearch(query) {
                     document.getElementById('add-card-modal').style.display = 'none';
                     document.getElementById('edit-card-modal').style.display = 'none';
                     document.getElementById('delete-modal').style.display = 'none';
+                    document.getElementById('move-card-modal').style.display = 'none'; // Aggiungi questa riga
                 });
             });
             
@@ -1002,6 +1026,134 @@ async function performSearch(query) {
             });
             setupSearch(); // Aggiungi questa riga
 
+            document.getElementById('target-deck-select').addEventListener('change', function(e) {
+                const deckId = e.target.value;
+                const setSelect = document.getElementById('target-set-select');
+                const moveButton = document.getElementById('move-card-button');
+                
+                if (deckId) {
+                    loadSetsForDeck(deckId);
+                } else {
+                    setSelect.innerHTML = '<option value="">Seleziona prima un deck...</option>';
+                    setSelect.disabled = true;
+                    moveButton.disabled = true;
+                }
+            });
+
+            document.getElementById('target-set-select').addEventListener('change', function(e) {
+                const moveButton = document.getElementById('move-card-button');
+                moveButton.disabled = !e.target.value;
+            });
+
+            document.getElementById('move-card-button').addEventListener('click', async function() {
+                const targetDeckId = document.getElementById('target-deck-select').value;
+                const targetSetId = document.getElementById('target-set-select').value;
+                
+                if (!targetDeckId || !targetSetId || !currentMoveCardId) return;
+                
+                try {
+                    const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/${currentMoveCardId}/move`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-auth-token': localStorage.getItem('token')
+                        },
+                        body: JSON.stringify({ targetDeckId, targetSetId })
+                    });
+                    
+                    if (!response.ok) throw new Error('Error moving card');
+                    
+                    // Rimuovi la card dalla vista corrente
+                    currentCards = currentCards.filter(card => card._id !== currentMoveCardId);
+                    displayCards(currentCards);
+                    
+                    // Chiudi il modale
+                    document.getElementById('move-card-modal').style.display = 'none';
+                    alert('Flashcard spostata con successo!');
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Errore nello spostamento della flashcard');
+                }
+            });
+
+            // Chiudi i modali quando si clicca fuori
+            window.addEventListener('click', (e) => {
+                const modals = [
+                    document.getElementById('add-card-modal'),
+                    document.getElementById('edit-card-modal'),
+                    document.getElementById('delete-modal'),
+                    document.getElementById('move-card-modal')
+                ];
+            
+                modals.forEach(modal => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        // Reset dei form e delle selezioni
+                        if (modal.id === 'move-card-modal') {
+                            document.getElementById('target-deck-select').value = '';
+                            document.getElementById('target-set-select').innerHTML = '<option value="">Seleziona prima un deck...</option>';
+                            document.getElementById('target-set-select').disabled = true;
+                            document.getElementById('move-card-button').disabled = true;
+                            currentMoveCardId = null;
+                        }
+                    }
+                });
+            });
+        }
+
+        let currentMoveCardId = null;
+
+        async function loadDecksForMove() {
+            try {
+                const response = await fetch(`${API_URL}/decks`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error loading decks');
+                
+                const decks = await response.json();
+                const deckSelect = document.getElementById('target-deck-select');
+                
+                deckSelect.innerHTML = '<option value="">Seleziona un deck...</option>';
+                decks.forEach(deck => {
+                    // Usa deck.subject invece di deck.title
+                    deckSelect.innerHTML += `<option value="${deck._id}">${deck.subject}</option>`;
+                });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Errore nel caricamento dei deck');
+            }
+        }
+        async function loadSetsForDeck(deckId) {
+            try {
+                const response = await fetch(`${API_URL}/sets/${deckId}/sets`, {
+                    headers: {
+                        'x-auth-token': localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error loading sets');
+                
+                const sets = await response.json();
+                const setSelect = document.getElementById('target-set-select');
+                
+                setSelect.innerHTML = '<option value="">Seleziona un set...</option>';
+                sets.forEach(set => {
+                    if (set._id !== currentSetId) { // Esclude il set corrente
+                        setSelect.innerHTML += `<option value="${set._id}">${set.name}</option>`;
+                    }
+                });
+                
+                setSelect.disabled = false;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Errore nel caricamento dei set');
+            }
         }
         
         
