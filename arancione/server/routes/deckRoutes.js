@@ -42,12 +42,13 @@ router.get('/:id', auth, async (req, res) => {
 // Create a new deck (senza cards, ora gestite dai set)
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, description, subject } = req.body;
+    const { title, description, subject, color } = req.body;
     
     const newDeck = new Deck({
       title,
       description,
       subject,
+      color,
       owner: req.user.id
     });
 

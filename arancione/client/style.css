@@ -284,6 +284,8 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 16px var(--shadow-color);
             background-color: var(--sidebar-hover);
+            filter: brightness(1.1); /* questo aiuterà a creare un effetto hover coerente con qualsiasi colore */
+
         }
         /* Stili per il dropdown del profilo */
         .profile-dropdown {

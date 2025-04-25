@@ -126,6 +126,27 @@
                     <label for="deck-description" class="form-label">Description (optional)</label>
                     <textarea id="deck-description" class="form-input" placeholder="Inserisci una descrizione"></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="deck-color" class="form-label">Color</label>
+                    <div class="color-selector">
+                        <div class="color-option default active" data-color="#2e2d2d">
+                            <div class="color-preview"></div>
+                        </div>
+                        <div class="color-option" data-color="#2196f3">
+                            <div class="color-preview"></div>
+                        </div>
+                        <div class="color-option" data-color="#f44336">
+                            <div class="color-preview"></div>
+                        </div>
+                        <div class="color-option" data-color="#ff9800">
+                            <div class="color-preview"></div>
+                        </div>
+                        <div class="color-option" data-color="#9c27b0">
+                            <div class="color-preview"></div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="deck-color" value="#2e2d2d">
+                </div>
                 <button type="submit" class="auth-button">Create deck</button>
             </form>
         </div>
@@ -318,6 +339,49 @@
     font-size: 12px;
     margin-right: 8px;
 }
+.color-selector {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.color-option {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.color-option:hover {
+    background-color: var(--gray);
+}
+
+.color-option.active {
+    background-color: var(--gray);
+}
+
+.color-preview {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--gray);
+    transition: border-color 0.2s;
+}
+
+/* Stile del bordo quando il colore è selezionato */
+.color-option.active .color-preview {
+    border: 3px solid var(--primary);
+}
+
+/* Il colore di sfondo del preview viene impostato in base al data-color */
+.color-option[data-color="#2e2d2d"] .color-preview { background-color: #2e2d2d; }
+.color-option[data-color="#2196f3"] .color-preview { background-color: #2196f3; }
+.color-option[data-color="#f44336"] .color-preview { background-color: #f44336; }
+.color-option[data-color="#ff9800"] .color-preview { background-color: #ff9800; }
+.color-option[data-color="#9c27b0"] .color-preview { background-color: #9c27b0; }
+
+
     </style>
 
     <script>
@@ -434,23 +498,34 @@
                 
                 
                 
-                decks.forEach(deck => {
-                    const deckElement = document.createElement('div');
-                    deckElement.className = 'subject-card';
-                    deckElement.dataset.deckId = deck._id;
+                                        decks.forEach(deck => {
+                        const deckElement = document.createElement('div');
+                        deckElement.className = 'subject-card';
+                        deckElement.dataset.deckId = deck._id;
+                        
+                        // Ottiene il colore di default dal CSS
+                        const defaultColor = getComputedStyle(document.documentElement)
+                            .getPropertyValue('--card-background').trim();
+                        
+                        // Verifica e applica il colore
+                        if (deck.color && deck.color !== 'null' && deck.color !== 'undefined') {
+                            deckElement.style.backgroundColor = deck.color;
+                        } else {
+                            deckElement.style.backgroundColor = defaultColor || '#2e2d2d'; // Fallback manuale
+                        }
+                        
+                        deckElement.innerHTML = `
+                            <div class="subject-title">${deck.subject || 'No title'}</div>
+                            <div class="progress-container">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-stats">
+                                    <span>0 conosciute • 0 da studiare</span>
+                                </div>
+                            </div>
+                        `;
                     
-                    // Aggiungi il contenuto del deck con la barra di progresso
-                    deckElement.innerHTML = `
-                        <div class="subject-title">${deck.subject || 'No title'}</div>
-                        <div class="progress-container">
-                            <div class="progress-bar-container">
-                                <div class="progress-bar" style="width: 0%;"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>0 conosciute • 0 da studiare</span>
-                            </div>
-                        </div>
-                    `;
                     
                     // Add click event to open deck
                     deckElement.addEventListener('click', function() {
@@ -557,6 +632,7 @@
                 
                 const subject = document.getElementById('deck-subject').value;
                 const description = document.getElementById('deck-description').value;
+                const color = document.getElementById('deck-color').value;
                 const token = localStorage.getItem('token');
                 
                 // Visualizza indicatore di caricamento o disabilita il pulsante
@@ -575,6 +651,7 @@
                         body: JSON.stringify({
                             subject,
                             description,
+                            color,
                             cards: [] // Start with empty cards
                         })
                     });
@@ -603,6 +680,19 @@
                     // Ripristina il pulsante
                     submitButton.textContent = originalText;
                     submitButton.disabled = false;
+                }
+            });
+
+            // Gestione selezione colore
+            document.querySelector('.color-selector').addEventListener('click', function(e) {
+                const colorOption = e.target.closest('.color-option');
+                if (colorOption) {
+                    // Rimuovi active da tutte le opzioni
+                    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                    // Aggiungi active all'opzione selezionata
+                    colorOption.classList.add('active');
+                    // Imposta il valore nel campo nascosto
+                    document.getElementById('deck-color').value = colorOption.dataset.color;
                 }
             });
         }
@@ -714,6 +804,16 @@
                         Errore durante la ricerca. Riprova più tardi.
                     </div>`;
             }
+        }
+
+        // Funzione di utilità per schiarire/scurire un colore
+        function adjustColor(color, percent) {
+            const num = parseInt(color.replace("#",""), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
         }
     </script>
 </body>

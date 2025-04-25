@@ -9,6 +9,10 @@ const deckSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  color: {
+    type: String,
+    default: '#4caf50' // Colore default
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
