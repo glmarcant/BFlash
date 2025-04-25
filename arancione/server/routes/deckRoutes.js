@@ -67,10 +67,10 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// Update a deck (rimuovi la gestione delle cards)
+// Update a deck
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { title, description, subject } = req.body;
+    const { description, subject } = req.body;
     
     let deck = await Deck.findById(req.params.id);
     
@@ -83,7 +83,6 @@ router.put('/:id', auth, async (req, res) => {
     deck = await Deck.findByIdAndUpdate(
       req.params.id,
       { 
-        title, 
         description, 
         subject,
         updatedAt: Date.now()
