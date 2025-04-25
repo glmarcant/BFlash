@@ -324,6 +324,55 @@
     font-size: 12px;
     margin-right: 8px;
 }
+
+/* Stili per il menu a tre puntini */
+.card-menu-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background-color: var(--card-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.card-menu-button:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.card-menu {
+    position: absolute;
+    top: 45px;
+    right: 10px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    display: none;
+    z-index: 100;
+}
+
+.card-menu-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.card-menu-item:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.card-menu-item.delete:hover {
+    color: #dc3545;
+}
+
     </style>
 </head>
 <body>
@@ -533,49 +582,88 @@
             }
         }
         
-        // Visualizza le flashcard
-        function displayCards(cards) {
+                function displayCards(cards) {
             const container = document.getElementById('cards-container');
             const studySetButton = document.querySelector('.study-set-container');
             container.innerHTML = '';
-
+        
             if (!cards || cards.length === 0) {
                 container.innerHTML = '<div class="no-cards">Nessuna flashcard presente. Aggiungi la tua prima flashcard!</div>';
                 studySetButton.style.display = 'none';
                 return;
             }
+            
             studySetButton.style.display = 'flex';
             cards.forEach(card => {
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card-item';
                 cardElement.dataset.cardId = card._id;
                 cardElement.innerHTML = `
-                    <div class="card-actions">
-                        <div class="action-button edit" title="Edit flashcard">
+                    <div class="card-menu-button" title="Menu">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                    <div class="card-menu">
+                        <div class="card-menu-item edit">
                             <i class="fas fa-edit"></i>
+                            Edit
                         </div>
-                        <div class="action-button delete" title="Elimina flashcard">
+                        <div class="card-menu-item move">
+                            <i class="fas fa-exchange-alt"></i>
+                            Move
+                        </div>
+                        <div class="card-menu-item delete">
                             <i class="fas fa-trash"></i>
+                            Delete
                         </div>
                     </div>
                     <h3>${card.question}</h3>
                     <p>${card.answer.substring(0, 50)}${card.answer.length > 50 ? '...' : ''}</p>
                 `;
-
-                // Event listener per modifica
-                cardElement.querySelector('.edit').addEventListener('click', (e) => {
+        
+                // Event listener per il menu
+                const menuButton = cardElement.querySelector('.card-menu-button');
+                const menu = cardElement.querySelector('.card-menu');
+                
+                menuButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Chiudi tutti gli altri menu aperti
+                    document.querySelectorAll('.card-menu').forEach(m => {
+                        if (m !== menu) m.style.display = 'none';
+                    });
+                    menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
+                });
+        
+                // Event listeners per le opzioni del menu
+                cardElement.querySelector('.card-menu-item.edit').addEventListener('click', (e) => {
                     e.stopPropagation();
                     openEditCardModal(card._id, card.question, card.answer);
+                    menu.style.display = 'none';
                 });
-
-                // Event listener per eliminazione
-                cardElement.querySelector('.delete').addEventListener('click', (e) => {
+        
+                cardElement.querySelector('.card-menu-item.delete').addEventListener('click', (e) => {
                     e.stopPropagation();
                     currentDeleteCardId = card._id;
                     document.getElementById('delete-modal').style.display = 'flex';
+                    menu.style.display = 'none';
                 });
-
+        
+                cardElement.querySelector('.card-menu-item.move').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Per ora non fa nulla
+                    console.log('Move card:', card._id);
+                    menu.style.display = 'none';
+                });
+        
                 container.appendChild(cardElement);
+            });
+        
+            // Chiudi il menu quando si clicca fuori
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.card-menu') && !e.target.closest('.card-menu-button')) {
+                    document.querySelectorAll('.card-menu').forEach(menu => {
+                        menu.style.display = 'none';
+                    });
+                }
             });
         }
 
