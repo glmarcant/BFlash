@@ -497,6 +497,59 @@
     font-size: 12px;
     margin-right: 8px;
 }
+
+/* Stili per il menu a tre puntini nei set */
+.set-menu-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background-color: var(--card-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.set-menu-button:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.set-menu {
+    position: absolute;
+    top: 45px;
+    right: 10px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    display: none;
+    z-index: 100;
+}
+
+.set-menu-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.set-menu-item:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.set-menu-item.delete:hover {
+    color: #dc3545;
+}
+
+.set-card {
+    position: relative;  /* Aggiungi questa proprietà */
+}
 </style>
 </head>
 <body>
@@ -632,7 +685,6 @@
         </div>
     </div>
     
-    <!-- Aggiungi questo prima della chiusura del tag body -->
 <!-- Modifica il form rimuovendo il campo title -->
 <div class="modal" id="edit-deck-modal" style="display: none;">
     <div class="modal-content">
@@ -649,6 +701,21 @@
             </div>
             <button type="submit" class="auth-button">Save changes</button>
         </form>
+    </div>
+</div>
+
+<!-- Move Set Modal -->
+<div class="modal" id="move-set-modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Sposta set</h2>
+        <div class="form-group">
+            <label class="form-label">Seleziona il deck di destinazione</label>
+            <select id="target-deck-select" class="form-input">
+                <option value="">Seleziona un deck...</option>
+            </select>
+        </div>
+        <button id="move-set-button" class="auth-button" disabled>Sposta set</button>
     </div>
 </div>
 
@@ -785,25 +852,84 @@ async function loadSets() {
     
         // Aggiungi i set e calcola il totale delle card
         for (const set of sets) {
-            const setElement = document.createElement('div');
-            setElement.className = 'set-card';
-            setElement.dataset.setId = set._id;
-            setElement.innerHTML = `
-                <h3>${set.name}</h3>
-                <div class="progress-container">
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: 0%;"></div>
-                    </div>
-                    <div class="progress-stats">
-                        <span>0 conosciute • 0 da studiare</span>
-                    </div>
-                </div>
-            `;
-    
-            setElement.addEventListener('click', () => {
-                window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
-            });
-    
+    const setElement = document.createElement('div');
+setElement.className = 'set-card';
+setElement.dataset.setId = set._id;
+setElement.innerHTML = `
+    <div class="set-menu-button" title="Menu">
+        <i class="fas fa-ellipsis-v"></i>
+    </div>
+    <div class="set-menu">
+        <div class="set-menu-item edit">
+            <i class="fas fa-edit"></i>
+            Edit
+        </div>
+        <div class="set-menu-item move">
+            <i class="fas fa-exchange-alt"></i>
+            Move
+        </div>
+        <div class="set-menu-item delete">
+            <i class="fas fa-trash"></i>
+            Delete
+        </div>
+    </div>
+    <h3>${set.name}</h3>
+    <div class="progress-container">
+        <div class="progress-bar-container">
+            <div class="progress-bar" style="width: 0%;"></div>
+        </div>
+        <div class="progress-stats">
+            <span>0 conosciute • 0 da studiare</span>
+        </div>
+    </div>
+`;
+
+// Event listener per il menu
+const menuButton = setElement.querySelector('.set-menu-button');
+const menu = setElement.querySelector('.set-menu');
+
+menuButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // Chiudi tutti gli altri menu aperti
+    document.querySelectorAll('.set-menu').forEach(m => {
+        if (m !== menu) m.style.display = 'none';
+    });
+    menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
+});
+
+// Event listeners per le opzioni del menu
+setElement.querySelector('.set-menu-item.edit').addEventListener('click', (e) => {
+    e.stopPropagation();
+    alert('Funzionalità di modifica in arrivo!');
+    menu.style.display = 'none';
+});
+
+setElement.querySelector('.set-menu-item.delete').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const confirmDelete = confirm('Sei sicuro di voler eliminare questo set? Questa azione non può essere annullata.');
+    if (confirmDelete) {
+        deleteSet(set._id);
+    }
+    menu.style.display = 'none';
+});
+
+setElement.querySelector('.set-menu-item.move').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    currentMoveSetId = set._id;
+    await loadDecksForMove();
+    document.getElementById('move-set-modal').style.display = 'flex';
+    document.getElementById('move-set-button').disabled = true;
+    menu.style.display = 'none';
+});
+
+// Aggiungi il click handler per la navigazione
+setElement.addEventListener('click', (e) => {
+    // Verifica se il click non proviene dal menu o dai suoi elementi
+    if (!e.target.closest('.set-menu') && !e.target.closest('.set-menu-button')) {
+        window.location.href = `set.html?deckId=${currentDeckId}&setId=${set._id}`;
+    }
+});
+
             container.appendChild(setElement);
     
             // Carica le statistiche e aggiorna il conteggio totale
@@ -1197,9 +1323,16 @@ async function performSearch(query) {
             console.error('Error:', error);
             alert('Error updating deck');
         }
+                    // Chiudi i menu quando si clicca fuori
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.set-menu') && !e.target.closest('.set-menu-button')) {
+            document.querySelectorAll('.set-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+    });
     });
 
-// Aggiungi questo nella sezione degli event listener dei modali
 document.querySelectorAll('.close-modal').forEach(btn => {
     btn.addEventListener('click', () => {
         document.getElementById('add-set-modal').style.display = 'none';
@@ -1224,6 +1357,73 @@ document.getElementById('study-deck-button').addEventListener('click', () => {
 
     // Reindirizzamento al sito di test
     window.location.href = `flashcard.html?deckId=${currentDeckId}`;});
+
+let currentMoveSetId = null;
+
+// Event listener per il select del deck
+document.getElementById('target-deck-select').addEventListener('change', function(e) {
+    document.getElementById('move-set-button').disabled = !e.target.value;
+});
+
+// Event listener per il pulsante di spostamento
+document.getElementById('move-set-button').addEventListener('click', async function() {
+    const targetDeckId = document.getElementById('target-deck-select').value;
+    
+    if (!targetDeckId || !currentMoveSetId) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentMoveSetId}/move`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': localStorage.getItem('token')
+            },
+            body: JSON.stringify({ targetDeckId })
+        });
+        
+        if (!response.ok) throw new Error('Error moving set');
+        
+        // Rimuovi il set dalla vista corrente
+        currentSets = currentSets.filter(set => set._id !== currentMoveSetId);
+        displaySets(currentSets);
+        
+        // Chiudi il modale
+        document.getElementById('move-set-modal').style.display = 'none';
+        alert('Set spostato con successo!');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Errore nello spostamento del set');
+    }
+});
+
+// Funzione per caricare i deck disponibili
+async function loadDecksForMove() {
+    try {
+        const response = await fetch(`${API_URL}/decks`, {
+            headers: {
+                'x-auth-token': localStorage.getItem('token')
+            }
+        });
+        
+        if (!response.ok) throw new Error('Error loading decks');
+        
+        const decks = await response.json();
+        const deckSelect = document.getElementById('target-deck-select');
+        
+        deckSelect.innerHTML = '<option value="">Seleziona un deck...</option>';
+        decks.forEach(deck => {
+            // Escludi il deck corrente
+            if (deck._id !== currentDeckId) {
+                deckSelect.innerHTML += `<option value="${deck._id}">${deck.subject}</option>`;
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Errore nel caricamento dei deck');
+    }
+}
     </script>
 </body>
 </html>

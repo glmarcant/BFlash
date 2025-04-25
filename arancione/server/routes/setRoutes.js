@@ -158,5 +158,52 @@ router.get('/:deckId/sets/:setId/stats', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// Modifica la route esistente o aggiungila se non esiste
+router.put('/:deckId/sets/:setId/move', auth, async (req, res) => {
+  try {
+    const { deckId, setId } = req.params;
+    const { targetDeckId } = req.body;
 
+    // Verifica che il deck di origine e il set esistano
+    const sourceDeck = await Deck.findById(deckId);
+    if (!sourceDeck || sourceDeck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Source deck not found or unauthorized' });
+    }
+
+    const set = await Set.findById(setId);
+    if (!set || set.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Set not found or unauthorized' });
+    }
+
+    // Verifica che il deck di destinazione esista
+    const targetDeck = await Deck.findById(targetDeckId);
+    if (!targetDeck || targetDeck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Target deck not found or unauthorized' });
+    }
+
+    // Aggiorna il riferimento del deck nel set
+    set.deck = targetDeckId;
+    await set.save();
+
+    // Aggiorna tutte le card associate al set
+    await Card.updateMany(
+      { set: setId },
+      { deck: targetDeckId }
+    );
+
+    // Rimuovi il set dal deck di origine
+    sourceDeck.sets = sourceDeck.sets.filter(id => id.toString() !== setId);
+    await sourceDeck.save();
+
+    // Aggiungi il set al deck di destinazione
+    targetDeck.sets.push(setId);
+    await targetDeck.save();
+
+    res.json({ message: 'Set moved successfully' });
+
+  } catch (err) {
+    console.error('Error moving set:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 module.exports = router;
