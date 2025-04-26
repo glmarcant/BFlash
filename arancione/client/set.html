@@ -428,6 +428,9 @@
                 <i class="fas fa-trash"></i>
             </div>
         </div>
+        <div class="set-actions">
+            <button id="generate-flashcards-button" class="auth-button">Genera Flashcard</button>
+        </div>
     </div>
     
     <!-- Add Card Button -->
@@ -511,6 +514,10 @@
     </div>
 </div>
     
+<div id="flashcard-container" style="margin-top: 20px; padding: 20px; background-color: var(--card-background); border-radius: 12px; display: none;">
+    <h2>Risultato grezzo dell'IA:</h2>
+    <pre id="flashcard-content" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+</div>
 
     <div class="study-set-container">
         <button class="study-set-button" id="study-set-button">Study set</button>
@@ -1156,7 +1163,285 @@ async function performSearch(query) {
             }
         }
         
+                async function generateFlashcards() {
+            const userText = prompt('Inserisci il testo da cui generare le flashcard:');
+            if (!userText) return;
         
+            try {
+                const response = await fetch('/api/flashcards/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ text: userText })
+                });
+        
+                if (!response.ok) throw new Error('Errore nella generazione delle flashcard.');
+        
+                const data = await response.json();
+                
+                // Debug: mostra la risposta grezza nella console
+                console.log("Risposta grezza dall'API:", data.rawResponse);
+                
+                // Tentativo di pulire e parsare la risposta
+                let flashcards = tryParseFlashcards(data.rawResponse);
+                
+                if (!flashcards) {
+                    // Se il parsing fallisce, mostra la risposta ma tenta comunque di estrarre le flashcard parziali
+                    const container = document.getElementById('flashcard-container');
+                    const content = document.getElementById('flashcard-content');
+                    
+                    // Tenta di estrarre manualmente le flashcard visibili
+                    const partialFlashcards = extractPartialFlashcards(data.rawResponse);
+                    
+                    if (partialFlashcards && partialFlashcards.length > 0) {
+                        content.innerHTML = `<strong>Parsing JSON fallito, ma sono state trovate ${partialFlashcards.length} flashcard:</strong><br><br>`;
+                        
+                        partialFlashcards.forEach((card, index) => {
+                            content.innerHTML += `<div style="margin-bottom: 15px;">
+                                <strong>${index + 1}. Domanda:</strong> ${escapeHtml(card.question)}<br>
+                                <strong>Risposta:</strong> ${escapeHtml(card.answer)}
+                            </div>`;
+                        });
+                        
+                        content.innerHTML += `<br><strong>Vuoi utilizzare queste flashcard?</strong><br>
+                        <button id="use-partial-flashcards" style="margin-top: 10px" class="auth-button">Usa queste flashcard</button>`;
+                        
+                        container.style.display = 'block';
+                        
+                        document.getElementById('use-partial-flashcards').addEventListener('click', () => {
+                            displayGeneratedFlashcards(partialFlashcards);
+                            container.style.display = 'none';
+                        });
+                    } else {
+                        content.innerHTML = `<strong>Errore nel parsing della risposta JSON. Risposta grezza:</strong><br><br>${escapeHtml(data.rawResponse)}`;
+                        container.style.display = 'block';
+                    }
+                    return;
+                }
+        
+                // Mostra le flashcard in un formato migliore
+                displayGeneratedFlashcards(flashcards);
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('Errore nella generazione delle flashcard: ' + error.message);
+            }
+        }
+        
+        // Funzione helper per estrarre flashcard parziali
+        function extractPartialFlashcards(text) {
+            const result = [];
+            const lines = text.split('\n');
+            
+            let currentQuestion = null;
+            let currentAnswer = null;
+            
+            for (const line of lines) {
+                const questionMatch = line.match(/"question":\s*"([^"]+)"/);
+                const answerMatch = line.match(/"answer":\s*"([^"]+)"/);
+                
+                if (questionMatch) {
+                    // Se abbiamo già una domanda precedente, salviamo la coppia
+                    if (currentQuestion && currentAnswer) {
+                        result.push({ question: currentQuestion, answer: currentAnswer });
+                    }
+                    currentQuestion = questionMatch[1];
+                    currentAnswer = null;
+                } else if (answerMatch && currentQuestion) {
+                    currentAnswer = answerMatch[1];
+                    // Salviamo subito la coppia
+                    result.push({ question: currentQuestion, answer: currentAnswer });
+                    currentQuestion = null;
+                    currentAnswer = null;
+                }
+            }
+            
+            return result;
+        }
+
+// Funzione helper per il parsing sicuro delle flashcard
+function tryParseFlashcards(rawResponse) {
+    // Prima prova: cerca il contenuto tra ```json e ```
+    const jsonMatch = rawResponse.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch && jsonMatch[1]) {
+        try {
+            return JSON.parse(jsonMatch[1].trim());
+        } catch (e) {
+            console.error("Parsing fallito dopo estrazione da markdown:", e);
+        }
+    }
+    
+    // Seconda prova: cerca eventuali array JSON nella risposta
+    const arrayMatch = rawResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (arrayMatch) {
+        try {
+            return JSON.parse(arrayMatch[0]);
+        } catch (e) {
+            console.error("Parsing dell'array JSON fallito:", e);
+        }
+    }
+    
+    // Terza prova: se la risposta sembra essere JSON ma è troncata, prova a ripararla
+    if (rawResponse.includes('"question"') && rawResponse.includes('"answer"')) {
+        try {
+            // Prova a chiudere l'array se appare troncato
+            let fixedJson = rawResponse;
+            if (!fixedJson.trim().endsWith(']')) {
+                // Trova l'ultimo oggetto completo e chiudi l'array
+                const lastCompleteObject = fixedJson.lastIndexOf('"}');
+                if (lastCompleteObject > 0) {
+                    fixedJson = fixedJson.substring(0, lastCompleteObject + 2) + '}]';
+                }
+            }
+            return JSON.parse(fixedJson);
+        } catch (e) {
+            console.error("Riparazione JSON fallita:", e);
+        }
+    }
+    
+    // Ultimo tentativo: prova ad estrarre manualmente domande e risposte
+    const questions = rawResponse.match(/"question":\s*"([^"]+)"/g);
+    const answers = rawResponse.match(/"answer":\s*"([^"]+)"/g);
+    
+    if (questions && answers && questions.length === answers.length) {
+        try {
+            const result = [];
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i].match(/"question":\s*"([^"]+)"/)[1];
+                const a = answers[i].match(/"answer":\s*"([^"]+)"/)[1];
+                result.push({ question: q, answer: a });
+            }
+            return result;
+        } catch (e) {
+            console.error("Estrazione manuale fallita:", e);
+        }
+    }
+    
+    // Se tutti i tentativi falliscono, mostra la risposta grezza
+    console.error("Impossibile parsare la risposta:", rawResponse);
+    return null;
+}
+
+// Funzione helper per escape HTML
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+function displayGeneratedFlashcards(flashcards) {
+    // Verifica che flashcards sia un array valido
+    if (!Array.isArray(flashcards)) {
+        console.error("Le flashcard non sono in un formato valido:", flashcards);
+        alert("Errore: formato delle flashcard non valido");
+        return;
+    }
+
+    // Verifica che ogni elemento abbia question e answer
+    const isValid = flashcards.every(fc => fc.question && fc.answer);
+    if (!isValid) {
+        console.error("Alcune flashcard mancano di question o answer:", flashcards);
+        alert("Errore: alcune flashcard non hanno domanda o risposta");
+        return;
+    }
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <span class="close-modal">&times;</span>
+            <h2>Flashcard generate</h2>
+            <div class="generated-flashcards-container" style="max-height: 60vh; overflow-y: auto; margin: 20px 0;">
+                ${flashcards.map((fc, index) => `
+                    <div class="generated-flashcard" style="background-color: var(--card-background); border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px var(--shadow-color);">
+                        <div class="flashcard-question" style="font-weight: bold; font-size: 18px; margin-bottom: 10px; color: var(--text);">
+                            <i class="fas fa-question-circle" style="margin-right: 8px; color: var(--primary);"></i>
+                            ${fc.question}
+                        </div>
+                        <div class="flashcard-answer" style="font-size: 16px; color: var(--text-light); padding-left: 28px;">
+                            <i class="fas fa-lightbulb" style="margin-right: 8px; color: var(--success);"></i>
+                            ${fc.answer}
+                        </div>
+                        <div style="text-align: right; margin-top: 10px;">
+                            <input type="checkbox" id="select-flashcard-${index}" checked style="transform: scale(1.2); margin-right: 8px;">
+                            <label for="select-flashcard-${index}" style="cursor: pointer;">Seleziona</label>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <button id="select-all-button" class="auth-button" style="background-color: var(--gray); color: var(--text);">
+                    <i class="fas fa-check-square"></i> Seleziona tutto
+                </button>
+                <button id="add-selected-button" class="auth-button">
+                    <i class="fas fa-plus-circle"></i> Aggiungi selezionate
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Chiudi il modal
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    // Seleziona/deseleziona tutto
+    modal.querySelector('#select-all-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        const checkboxes = modal.querySelectorAll('input[type="checkbox"]');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        
+        checkboxes.forEach(cb => {
+            cb.checked = !allChecked;
+        });
+        
+        e.target.innerHTML = allChecked 
+            ? '<i class="fas fa-check-square"></i> Seleziona tutto' 
+            : '<i class="fas fa-times-circle"></i> Deseleziona tutto';
+    });
+
+    // Aggiungi le flashcard selezionate
+    modal.querySelector('#add-selected-button').addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        const selectedIndexes = Array.from(modal.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(input => parseInt(input.id.replace('select-flashcard-', '')));
+        
+        if (selectedIndexes.length === 0) {
+            alert('Seleziona almeno una flashcard da aggiungere');
+            return;
+        }
+
+        const selectedFlashcards = selectedIndexes.map(index => flashcards[index]);
+        
+        try {
+            const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/bulk`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': localStorage.getItem('token')
+                },
+                body: JSON.stringify(selectedFlashcards)
+            });
+
+            if (!response.ok) throw new Error('Errore nell\'aggiunta delle flashcard.');
+
+            alert(`${selectedFlashcards.length} flashcard aggiunte con successo!`);
+            modal.remove();
+            loadCards();
+        } catch (error) {
+            console.error('Errore:', error);
+            alert('Errore nell\'aggiunta delle flashcard: ' + error.message);
+        }
+    });
+}
+        document.getElementById('generate-flashcards-button').addEventListener('click', generateFlashcards);
     </script>
 </body>
 </html>

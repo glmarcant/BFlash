@@ -33,7 +33,7 @@ app.use('/api/decks', require('./routes/deckRoutes'));
 // app.use('/api/cards', require('./routes/cardRoutes')); // Rimuovi o commenta questa linea
 app.use('/api/sets', require('./routes/setRoutes')); // Questa rimane come è
 app.use('/api/sets', require('./routes/cardRoutes')); // Aggiungi questa linea
-
+app.use('/api/flashcards', require('./routes/flashcardRoutes'));
 // Servi contenuti statici dalla cartella client
 app.use(express.static(path.join(__dirname, '../client')));
 
