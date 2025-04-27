@@ -1,11 +1,10 @@
-// flashcardRoutes.js
+require('dotenv').config(); // Importa dotenv
 
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-// Assicurati di proteggere la tua API key nella versione reale!
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = process.env.GROQ_API_KEY; // Legge la chiave API dal .env
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Endpoint corretto per generare flashcards
@@ -22,7 +21,6 @@ router.post('/generate', async (req, res) => {
             messages: [
                 {
                     role: 'user',
-                    // Prompt
                     content: `Leggi il seguente testo e generami esattamente 15 flashcard in formato JSON puro:
 
                     ${text.substring(0, 5000)} // Limita la lunghezza del testo
@@ -51,7 +49,6 @@ router.post('/generate', async (req, res) => {
             }
         });
 
-        // Risposta corretta al frontend
         res.json({
             rawResponse: response.data.choices[0].message.content
         });
