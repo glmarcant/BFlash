@@ -69,9 +69,10 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Update a deck
+// Update a deck
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { description, subject } = req.body;
+    const { description, subject, color } = req.body;
     
     let deck = await Deck.findById(req.params.id);
     
@@ -86,6 +87,7 @@ router.put('/:id', auth, async (req, res) => {
       { 
         description, 
         subject,
+        color,
         updatedAt: Date.now()
       },
       { new: true }

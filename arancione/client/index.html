@@ -152,6 +152,46 @@
         </div>
     </div>
 
+    <!-- Modale per modificare il deck -->
+<div class="modal" id="edit-deck-modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Edit deck</h2>
+        <form id="edit-deck-form">
+            <div class="form-group">
+                <label for="edit-deck-subject" class="form-label">Deck name</label>
+                <input type="text" id="edit-deck-subject" class="form-input" placeholder="Enter deck name" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-deck-description" class="form-label">Description</label>
+                <textarea id="edit-deck-description" class="form-input" placeholder="Enter deck description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="deck-color" class="form-label">Color</label>
+                <div class="color-selector">
+                    <div class="color-option default" data-color="#2e2d2d">
+                        <div class="color-preview"></div>
+                    </div>
+                    <div class="color-option" data-color="#2196f3">
+                        <div class="color-preview"></div>
+                    </div>
+                    <div class="color-option" data-color="#f44336">
+                        <div class="color-preview"></div>
+                    </div>
+                    <div class="color-option" data-color="#ff9800">
+                        <div class="color-preview"></div>
+                    </div>
+                    <div class="color-option" data-color="#9c27b0">
+                        <div class="color-preview"></div>
+                    </div>
+                </div>
+            <input type="hidden" id="edit-deck-color" value="#2e2d2d">            
+        </div>
+            <button type="submit" class="auth-button">Save changes</button>
+        </form>
+    </div>
+</div>
+
     <style>
         /* Loading */
         .loading-message {
@@ -382,6 +422,61 @@
 .color-option[data-color="#9c27b0"] .color-preview { background-color: #9c27b0; }
 
 
+
+    /* Stili per il menu a tre puntini nei deck */
+    .deck-menu-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background-color: var(--card-background);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+    .deck-menu-button:hover {
+        background-color: var(--sidebar-hover);
+    }
+
+    .deck-menu {
+        position: absolute;
+        top: 45px;
+        right: 10px;
+        background-color: var(--card-background);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px var(--shadow-color);
+        display: none;
+        z-index: 100;
+    }
+
+    .deck-menu-item {
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .deck-menu-item:hover {
+        background-color: var(--sidebar-hover);
+    }
+
+    .deck-menu-item.delete:hover {
+        color: #dc3545;
+    }
+
+    .subject-card {
+        position: relative;  /* Aggiungi questa proprietà */
+    }
+
+
     </style>
 
     <script>
@@ -476,74 +571,197 @@
         
         // Load user decks
         async function loadDecks() {
-            const token = localStorage.getItem('token');
-            const decksContainer = document.getElementById('decks-container');
-            
-            try {
-                const response = await fetch(`${API_URL}/decks`, {
-                    headers: {
-                        'x-auth-token': token
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load decks');
-                }
-                
-                const decks = await response.json();
-                console.log('Decks ricevuti dal server:', decks);
-                
-                // Clear loading message
-                decksContainer.innerHTML = '';
-                
-                
-                
-                                        decks.forEach(deck => {
-                        const deckElement = document.createElement('div');
-                        deckElement.className = 'subject-card';
-                        deckElement.dataset.deckId = deck._id;
-                        
-                        // Ottiene il colore di default dal CSS
-                        const defaultColor = getComputedStyle(document.documentElement)
-                            .getPropertyValue('--card-background').trim();
-                        
-                        // Verifica e applica il colore
-                        if (deck.color && deck.color !== 'null' && deck.color !== 'undefined') {
-                            deckElement.style.backgroundColor = deck.color;
-                        } else {
-                            deckElement.style.backgroundColor = defaultColor || '#2e2d2d'; // Fallback manuale
-                        }
-                        
-                        deckElement.innerHTML = `
-                            <div class="subject-title">${deck.subject || 'No title'}</div>
-                            <div class="progress-container">
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar" style="width: 0%"></div>
-                                </div>
-                                <div class="progress-stats">
-                                    <span>0 conosciute • 0 da studiare</span>
-                                </div>
-                            </div>
-                        `;
-                    
-                    
-                    // Add click event to open deck
-                    deckElement.addEventListener('click', function() {
-                        // Navigate to deck detail page (to be implemented)
-                        window.location.href = `deck.html?id=${deck._id}`;
-                    });
-                    
-                    decksContainer.appendChild(deckElement);
-                    
-                    // Carica e aggiorna la barra di progresso con i dati del deck
-                    updateDeckProgress(deck._id, deckElement);
-                });
-                
-            } catch (error) {
-                console.error('Error loading decks:', error);
-                decksContainer.innerHTML = '<div class="error-message">Error loading decks. Try again later.</div>';
+    const token = localStorage.getItem('token');
+    const decksContainer = document.getElementById('decks-container');
+    
+    try {
+        const response = await fetch(`${API_URL}/decks`, {
+            headers: {
+                'x-auth-token': token
             }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load decks');
         }
+        
+        const decks = await response.json();
+        console.log('Decks ricevuti dal server:', decks);
+        
+        // Clear loading message
+        decksContainer.innerHTML = '';
+        
+        decks.forEach(deck => {
+            const deckElement = document.createElement('div');
+            deckElement.className = 'subject-card';
+            deckElement.dataset.deckId = deck._id;
+            
+            // Ottiene il colore di default dal CSS
+            const defaultColor = getComputedStyle(document.documentElement)
+                .getPropertyValue('--card-background').trim();
+            
+            // Verifica e applica il colore
+            if (deck.color && deck.color !== 'null' && deck.color !== 'undefined') {
+                deckElement.style.backgroundColor = deck.color;
+            } else {
+                deckElement.style.backgroundColor = defaultColor || '#2e2d2d'; // Fallback manuale
+            }
+            
+            deckElement.innerHTML = `
+                <div class="deck-menu-button" title="Menu">
+                    <i class="fas fa-ellipsis-v"></i>
+                </div>
+                <div class="deck-menu">
+                    <div class="deck-menu-item edit">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </div>
+                    <div class="deck-menu-item delete">
+                        <i class="fas fa-trash"></i>
+                        Delete
+                    </div>
+                </div>
+                <div class="subject-title">${deck.subject || 'No title'}</div>
+                <div class="progress-container">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span>0 conosciute • 0 da studiare</span>
+                    </div>
+                </div>
+            `;
+            
+            // Event listener per il menu
+            const menuButton = deckElement.querySelector('.deck-menu-button');
+            const menu = deckElement.querySelector('.deck-menu');
+            
+            menuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Chiudi tutti gli altri menu aperti
+                document.querySelectorAll('.deck-menu').forEach(m => {
+                    if (m !== menu) m.style.display = 'none';
+                });
+                menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
+            });
+            
+            // Event listeners per le opzioni del menu
+            deckElement.querySelector('.deck-menu-item.edit').addEventListener('click', (e) => {
+                e.stopPropagation();
+                editDeck(deck._id, deck.subject, deck.description, deck.color);
+                menu.style.display = 'none';
+            });
+            
+            deckElement.querySelector('.deck-menu-item.delete').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const confirmDelete = confirm('Sei sicuro di voler eliminare questo deck? Tutti i set e le flashcard al suo interno verranno eliminati.');
+                if (confirmDelete) {
+                    deleteDeck(deck._id);
+                }
+                menu.style.display = 'none';
+            });
+            
+            // Add click event to open deck (solo se non si clicca sul menu)
+            deckElement.addEventListener('click', function(e) {
+                if (!e.target.closest('.deck-menu') && !e.target.closest('.deck-menu-button')) {
+                    window.location.href = `deck.html?id=${deck._id}`;
+                }
+            });
+            
+            decksContainer.appendChild(deckElement);
+            
+            // Carica e aggiorna la barra di progresso con i dati del deck
+            updateDeckProgress(deck._id, deckElement);
+        });
+        
+    } catch (error) {
+        console.error('Error loading decks:', error);
+        decksContainer.innerHTML = '<div class="error-message">Error loading decks. Try again later.</div>';
+    }
+}
+
+// Funzione per eliminare un deck
+async function deleteDeck(deckId) {
+    try {
+        const response = await fetch(`${API_URL}/decks/${deckId}`, {
+            method: 'DELETE',
+            headers: {
+                'x-auth-token': localStorage.getItem('token')
+            }
+        });
+        
+        if (!response.ok) throw new Error('Error deleting deck');
+        
+        alert('Deck successfully deleted!');
+        loadDecks(); // Ricarica la lista dei deck
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Funzione per modificare un deck
+async function editDeck(deckId, currentSubject, currentDescription, currentColor) {
+    // Popola il form di modifica
+    document.getElementById('edit-deck-subject').value = currentSubject || '';
+    document.getElementById('edit-deck-description').value = currentDescription || '';
+    document.getElementById('edit-deck-modal').style.display = 'flex';
+
+    // Imposta il colore corretto nel selettore
+    document.querySelectorAll('#edit-deck-modal .color-option').forEach(option => {
+        option.classList.remove('active');
+        if (option.dataset.color === currentColor) {
+            option.classList.add('active');
+        }
+    });
+
+    // Imposta il valore iniziale del colore
+    document.querySelector('#edit-deck-modal #edit-deck-color').value = currentColor || '#2e2d2d';
+
+    // Aggiungi un listener per aggiornare il colore selezionato
+    const colorSelector = document.querySelector('#edit-deck-modal .color-selector');
+    colorSelector.addEventListener('click', function(e) {
+        const colorOption = e.target.closest('.color-option');
+        if (colorOption) {
+            document.querySelectorAll('#edit-deck-modal .color-option').forEach(opt => opt.classList.remove('active'));
+            colorOption.classList.add('active');
+            document.querySelector('#edit-deck-modal #edit-deck-color').value = colorOption.dataset.color;
+        }
+    });
+
+    // Gestisci il submit del form
+    document.getElementById('edit-deck-form').onsubmit = async function(e) {
+        e.preventDefault();
+
+        const updatedDeck = {
+            subject: document.getElementById('edit-deck-subject').value,
+            description: document.getElementById('edit-deck-description').value,
+            color: document.querySelector('#edit-deck-modal #edit-deck-color').value
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/decks/${deckId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': localStorage.getItem('token')
+                },
+                body: JSON.stringify(updatedDeck)
+            });
+
+            if (!response.ok) throw new Error('Error updating deck');
+
+            alert('Deck updated successfully!');
+            document.getElementById('edit-deck-modal').style.display = 'none';
+            loadDecks();
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error: ${error.message}`);
+        }
+    };
+}
         // Carica e aggiorna la barra di progresso per un deck
         async function updateDeckProgress(deckId, deckElement) {
             try {
@@ -695,6 +913,22 @@
                     document.getElementById('deck-color').value = colorOption.dataset.color;
                 }
             });
+
+            // Modale di modifica
+            const editDeckModal = document.getElementById('edit-deck-modal');
+            const closeEditModal = editDeckModal.querySelector('.close-modal');
+
+            // Chiudi il modale cliccando sulla "X"
+            closeEditModal.addEventListener('click', function () {
+                editDeckModal.style.display = 'none';
+            });
+
+            // Chiudi il modale cliccando fuori
+            window.addEventListener('click', function (event) {
+                if (event.target === editDeckModal) {
+                    editDeckModal.style.display = 'none';
+                }
+            });
         }
 
         // Aggiungi questo codice JavaScript dopo la funzione setupEventListeners()
@@ -815,6 +1049,15 @@
             const B = (num & 0x0000FF) + amt;
             return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
         }
+
+        // Chiudi i menu quando si clicca fuori
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.deck-menu') && !e.target.closest('.deck-menu-button')) {
+        document.querySelectorAll('.deck-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+});
     </script>
 </body>
 </html>
