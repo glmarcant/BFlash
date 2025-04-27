@@ -373,6 +373,98 @@
     color: #dc3545;
 }
 
+
+
+/* Stili per il modale di generazione flashcard */
+.modal-description {
+    color: var(--text-light);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.generate-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.option-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.option-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    background-color: var(--gray);
+    color: var(--text);
+    font-size: 14px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center;
+    background-size: 12px;
+    padding-right: 30px;
+}
+
+.generate-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.auth-button.secondary {
+    background-color: var(--gray);
+    color: var(--text);
+}
+
+.auth-button.primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.auth-button.primary:hover {
+    background-color: var(--primary-dark, #0056b3);
+}
+
+.auth-button i {
+    margin-right: 8px;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 20px;
+    color: var(--text);
+}
+
+.loading-spinner {
+    font-size: 24px;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+/* Stile aggiornato per il contenitore del pulsante */
+.add-deck-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Spaziatura tra gli elementi */
+    flex-wrap: nowrap; /* Impedisce che gli elementi vadano a capo */
+}
+.add-deck-button {
+    white-space: nowrap; /* Impedisce che il testo vada a capo */
+}
+
     </style>
 </head>
 <body>
@@ -428,6 +520,7 @@
                 <i class="fas fa-trash"></i>
             </div>
         </div>
+        
     </div>
     
     <!-- Add Card Button -->
@@ -436,6 +529,7 @@
             <i class="fas fa-plus"></i>
         </div>
         <div class="add-deck-button">Add flashcard</div>
+        <button id="generate-flashcards-button" class="auth-button" >Generate with AI</button>
     </div>
     
     <!-- Cards Container -->
@@ -511,9 +605,34 @@
     </div>
 </div>
     
+<div id="flashcard-container" style="margin-top: 20px; padding: 20px; background-color: var(--card-background); border-radius: 12px; display: none;">
+    <h2>Risultato grezzo dell'IA:</h2>
+    <pre id="flashcard-content" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+</div>
 
     <div class="study-set-container">
         <button class="study-set-button" id="study-set-button">Study set</button>
+    </div>
+    <!-- Generate Flashcards Modal -->
+    <div class="modal" id="generate-flashcards-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="form-group">
+                <textarea id="flashcard-source-text" class="form-input" placeholder="Inserisci qui il testo da cui generare le flashcard..." rows="8" required></textarea>
+            </div>
+            <div class="generate-buttons">
+                <button id="cancel-generate" class="auth-button secondary">Annulla</button>
+                <button id="start-generate" class="auth-button primary">
+                    <i class="fas fa-magic"></i> Genera
+                </button>
+            </div>
+            <div id="generate-loading" class="loading-container" style="display: none;">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <p>Sto elaborando il testo e creando flashcard...</p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1100,6 +1219,8 @@ async function performSearch(query) {
                     }
                 });
             });
+
+            setupGenerateFlashcardsEvents();
         }
 
         let currentMoveCardId = null;
@@ -1156,7 +1277,373 @@ async function performSearch(query) {
             }
         }
         
+                async function generateFlashcards() {
+            const userText = prompt('Inserisci il testo da cui generare le flashcard:');
+            if (!userText) return;
         
+            try {
+                const response = await fetch('/api/flashcards/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ text: userText })
+                });
+        
+                if (!response.ok) throw new Error('Errore nella generazione delle flashcard.');
+        
+                const data = await response.json();
+                
+                // Debug: mostra la risposta grezza nella console
+                console.log("Risposta grezza dall'API:", data.rawResponse);
+                
+                // Tentativo di pulire e parsare la risposta
+                let flashcards = tryParseFlashcards(data.rawResponse);
+                
+                if (!flashcards) {
+                    // Se il parsing fallisce, mostra la risposta ma tenta comunque di estrarre le flashcard parziali
+                    const container = document.getElementById('flashcard-container');
+                    const content = document.getElementById('flashcard-content');
+                    
+                    // Tenta di estrarre manualmente le flashcard visibili
+                    const partialFlashcards = extractPartialFlashcards(data.rawResponse);
+                    
+                    if (partialFlashcards && partialFlashcards.length > 0) {
+                        content.innerHTML = `<strong>Parsing JSON fallito, ma sono state trovate ${partialFlashcards.length} flashcard:</strong><br><br>`;
+                        
+                        partialFlashcards.forEach((card, index) => {
+                            content.innerHTML += `<div style="margin-bottom: 15px;">
+                                <strong>${index + 1}. Domanda:</strong> ${escapeHtml(card.question)}<br>
+                                <strong>Risposta:</strong> ${escapeHtml(card.answer)}
+                            </div>`;
+                        });
+                        
+                        content.innerHTML += `<br><strong>Vuoi utilizzare queste flashcard?</strong><br>
+                        <button id="use-partial-flashcards" style="margin-top: 10px" class="auth-button">Usa queste flashcard</button>`;
+                        
+                        container.style.display = 'block';
+                        
+                        document.getElementById('use-partial-flashcards').addEventListener('click', () => {
+                            displayGeneratedFlashcards(partialFlashcards);
+                            container.style.display = 'none';
+                        });
+                    } else {
+                        content.innerHTML = `<strong>Errore nel parsing della risposta JSON. Risposta grezza:</strong><br><br>${escapeHtml(data.rawResponse)}`;
+                        container.style.display = 'block';
+                    }
+                    return;
+                }
+        
+                // Mostra le flashcard in un formato migliore
+                displayGeneratedFlashcards(flashcards);
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('Errore nella generazione delle flashcard: ' + error.message);
+            }
+        }
+        
+        // Funzione helper per estrarre flashcard parziali
+        function extractPartialFlashcards(text) {
+            const result = [];
+            const lines = text.split('\n');
+            
+            let currentQuestion = null;
+            let currentAnswer = null;
+            
+            for (const line of lines) {
+                const questionMatch = line.match(/"question":\s*"([^"]+)"/);
+                const answerMatch = line.match(/"answer":\s*"([^"]+)"/);
+                
+                if (questionMatch) {
+                    // Se abbiamo già una domanda precedente, salviamo la coppia
+                    if (currentQuestion && currentAnswer) {
+                        result.push({ question: currentQuestion, answer: currentAnswer });
+                    }
+                    currentQuestion = questionMatch[1];
+                    currentAnswer = null;
+                } else if (answerMatch && currentQuestion) {
+                    currentAnswer = answerMatch[1];
+                    // Salviamo subito la coppia
+                    result.push({ question: currentQuestion, answer: currentAnswer });
+                    currentQuestion = null;
+                    currentAnswer = null;
+                }
+            }
+            
+            return result;
+        }
+
+// Funzione helper per il parsing sicuro delle flashcard
+function tryParseFlashcards(rawResponse) {
+    // Prima prova: cerca il contenuto tra ```json e ```
+    const jsonMatch = rawResponse.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch && jsonMatch[1]) {
+        try {
+            return JSON.parse(jsonMatch[1].trim());
+        } catch (e) {
+            console.error("Parsing fallito dopo estrazione da markdown:", e);
+        }
+    }
+    
+    // Seconda prova: cerca eventuali array JSON nella risposta
+    const arrayMatch = rawResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (arrayMatch) {
+        try {
+            return JSON.parse(arrayMatch[0]);
+        } catch (e) {
+            console.error("Parsing dell'array JSON fallito:", e);
+        }
+    }
+    
+    // Terza prova: se la risposta sembra essere JSON ma è troncata, prova a ripararla
+    if (rawResponse.includes('"question"') && rawResponse.includes('"answer"')) {
+        try {
+            // Prova a chiudere l'array se appare troncato
+            let fixedJson = rawResponse;
+            if (!fixedJson.trim().endsWith(']')) {
+                // Trova l'ultimo oggetto completo e chiudi l'array
+                const lastCompleteObject = fixedJson.lastIndexOf('"}');
+                if (lastCompleteObject > 0) {
+                    fixedJson = fixedJson.substring(0, lastCompleteObject + 2) + '}]';
+                }
+            }
+            return JSON.parse(fixedJson);
+        } catch (e) {
+            console.error("Riparazione JSON fallita:", e);
+        }
+    }
+    
+    // Ultimo tentativo: prova ad estrarre manualmente domande e risposte
+    const questions = rawResponse.match(/"question":\s*"([^"]+)"/g);
+    const answers = rawResponse.match(/"answer":\s*"([^"]+)"/g);
+    
+    if (questions && answers && questions.length === answers.length) {
+        try {
+            const result = [];
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i].match(/"question":\s*"([^"]+)"/)[1];
+                const a = answers[i].match(/"answer":\s*"([^"]+)"/)[1];
+                result.push({ question: q, answer: a });
+            }
+            return result;
+        } catch (e) {
+            console.error("Estrazione manuale fallita:", e);
+        }
+    }
+    
+    // Se tutti i tentativi falliscono, mostra la risposta grezza
+    console.error("Impossibile parsare la risposta:", rawResponse);
+    return null;
+}
+
+// Funzione helper per escape HTML
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+function displayGeneratedFlashcards(flashcards) {
+    // Verifica che flashcards sia un array valido
+    if (!Array.isArray(flashcards)) {
+        console.error("Le flashcard non sono in un formato valido:", flashcards);
+        alert("Errore: formato delle flashcard non valido");
+        return;
+    }
+
+    // Verifica che ogni elemento abbia question e answer
+    const isValid = flashcards.every(fc => fc.question && fc.answer);
+    if (!isValid) {
+        console.error("Alcune flashcard mancano di question o answer:", flashcards);
+        alert("Errore: alcune flashcard non hanno domanda o risposta");
+        return;
+    }
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <span class="close-modal">&times;</span>
+            <h2>Flashcard generate</h2>
+            <div class="generated-flashcards-container" style="max-height: 60vh; overflow-y: auto; margin: 20px 0;">
+                ${flashcards.map((fc, index) => `
+                    <div class="generated-flashcard" style="background-color: var(--card-background); border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px var(--shadow-color);">
+                        <div class="flashcard-question" style="font-weight: bold; font-size: 18px; margin-bottom: 10px; color: var(--text);">
+                            <i class="fas fa-question-circle" style="margin-right: 8px; color: var(--primary);"></i>
+                            ${fc.question}
+                        </div>
+                        <div class="flashcard-answer" style="font-size: 16px; color: var(--text-light); padding-left: 28px;">
+                            <i class="fas fa-lightbulb" style="margin-right: 8px; color: var(--success);"></i>
+                            ${fc.answer}
+                        </div>
+                        <div style="text-align: right; margin-top: 10px;">
+                            <input type="checkbox" id="select-flashcard-${index}" checked style="transform: scale(1.2); margin-right: 8px;">
+                            <label for="select-flashcard-${index}" style="cursor: pointer;">Seleziona</label>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <button id="select-all-button" class="auth-button" style="background-color: var(--gray); color: var(--text);">
+                    <i class="fas fa-check-square"></i> Seleziona tutto
+                </button>
+                <button id="add-selected-button" class="auth-button">
+                    <i class="fas fa-plus-circle"></i> Aggiungi selezionate
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Chiudi il modal
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    // Seleziona/deseleziona tutto
+    modal.querySelector('#select-all-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        const checkboxes = modal.querySelectorAll('input[type="checkbox"]');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        
+        checkboxes.forEach(cb => {
+            cb.checked = !allChecked;
+        });
+        
+        e.target.innerHTML = allChecked 
+            ? '<i class="fas fa-check-square"></i> Seleziona tutto' 
+            : '<i class="fas fa-times-circle"></i> Deseleziona tutto';
+    });
+
+    // Aggiungi le flashcard selezionate
+    modal.querySelector('#add-selected-button').addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        const selectedIndexes = Array.from(modal.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(input => parseInt(input.id.replace('select-flashcard-', '')));
+        
+        if (selectedIndexes.length === 0) {
+            alert('Seleziona almeno una flashcard da aggiungere');
+            return;
+        }
+
+        const selectedFlashcards = selectedIndexes.map(index => flashcards[index]);
+        
+        try {
+            const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}/cards/bulk`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': localStorage.getItem('token')
+                },
+                body: JSON.stringify(selectedFlashcards)
+            });
+
+            if (!response.ok) throw new Error('Errore nell\'aggiunta delle flashcard.');
+
+            alert(`${selectedFlashcards.length} flashcard aggiunte con successo!`);
+            modal.remove();
+            loadCards();
+        } catch (error) {
+            console.error('Errore:', error);
+            alert('Errore nell\'aggiunta delle flashcard: ' + error.message);
+        }
+    });
+}
+        function showGenerateFlashcardsModal() {
+            document.getElementById('generate-flashcards-modal').style.display = 'flex';
+            document.getElementById('flashcard-source-text').focus();
+        }
+
+                async function handleGenerateFlashcards() {
+            const sourceText = document.getElementById('flashcard-source-text').value.trim();
+            
+            if (!sourceText) {
+                alert('Inserisci il testo da cui generare le flashcard.');
+                return;
+            }
+            
+            // Mostra il loader
+            document.getElementById('generate-loading').style.display = 'block';
+            document.getElementById('start-generate').disabled = true;
+            
+            try {
+                const response = await fetch('/api/flashcards/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        text: sourceText
+                    })
+                });
+        
+                if (!response.ok) throw new Error('Errore nella generazione delle flashcard.');
+        
+                const data = await response.json();
+                
+                // Nascondi il loader
+                document.getElementById('generate-loading').style.display = 'none';
+                document.getElementById('start-generate').disabled = false;
+                
+                // Chiudi il modale di generazione
+                document.getElementById('generate-flashcards-modal').style.display = 'none';
+                
+                // Elabora le flashcard ricevute
+                let flashcards = tryParseFlashcards(data.rawResponse);
+                
+                if (!flashcards) {
+                    const partialFlashcards = extractPartialFlashcards(data.rawResponse);
+                    
+                    if (partialFlashcards && partialFlashcards.length > 0) {
+                        displayGeneratedFlashcards(partialFlashcards);
+                    } else {
+                        const container = document.getElementById('flashcard-container');
+                        const content = document.getElementById('flashcard-content');
+                        content.innerHTML = `<strong>Errore nel parsing della risposta JSON. Risposta grezza:</strong><br><br>${escapeHtml(data.rawResponse)}`;
+                        container.style.display = 'block';
+                    }
+                } else {
+                    displayGeneratedFlashcards(flashcards);
+                }
+            } catch (error) {
+                console.error('Errore:', error);
+                document.getElementById('generate-loading').style.display = 'none';
+                document.getElementById('start-generate').disabled = false;
+                alert('Errore nella generazione delle flashcard: ' + error.message);
+            }
+        }
+
+        function setupGenerateFlashcardsEvents() {
+            // Sostituisce il click handler originale sul button Generate Flashcards
+            document.getElementById('generate-flashcards-button').addEventListener('click', showGenerateFlashcardsModal);
+            
+            // Gestori degli eventi per il nuovo modale
+            document.getElementById('start-generate').addEventListener('click', handleGenerateFlashcards);
+            
+            document.getElementById('cancel-generate').addEventListener('click', () => {
+                document.getElementById('generate-flashcards-modal').style.display = 'none';
+            });
+            
+            // Chiudi il modale quando si clicca sulla X
+            document.querySelector('#generate-flashcards-modal .close-modal').addEventListener('click', () => {
+                document.getElementById('generate-flashcards-modal').style.display = 'none';
+            });
+            
+            // Chiudi il modale quando si clicca al di fuori
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('generate-flashcards-modal');
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
     </script>
 </body>
 </html>

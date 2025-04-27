@@ -413,4 +413,44 @@ router.put('/:deckId/sets/:setId/cards/:cardId/move', auth, async (req, res) => 
   }
 });
 
+router.post('/:deckId/sets/:setId/cards/bulk', auth, async (req, res) => {
+  try {
+    const { deckId, setId } = req.params;
+    const flashcards = req.body;
+
+    // Verifica che il deck esista e che l'utente sia autorizzato
+    const deck = await Deck.findById(deckId);
+    if (!deck || deck.owner.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Deck not found or unauthorized' });
+    }
+
+    // Verifica che il set esista e appartenga al deck
+    const set = await Set.findById(setId);
+    if (!set || set.deck.toString() !== deckId) {
+      return res.status(404).json({ message: 'Set not found or unauthorized' });
+    }
+
+    // Crea le flashcard in blocco
+    const newCards = await Card.insertMany(
+      flashcards.map(fc => ({
+        question: fc.question,
+        answer: fc.answer,
+        set: set._id,
+        deck: deck._id,
+        known: 'no',
+        prossimaRipetizione: Date.now(),
+      }))
+    );
+
+    // Aggiungi le nuove flashcard al set
+    set.cards.push(...newCards.map(card => card._id));
+    await set.save();
+
+    res.status(201).json(newCards);
+  } catch (err) {
+    console.error('Errore nell\'aggiunta delle flashcard in blocco:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
