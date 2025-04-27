@@ -1376,65 +1376,45 @@ async function performSearch(query) {
 
 // Funzione helper per il parsing sicuro delle flashcard
 function tryParseFlashcards(rawResponse) {
-    // Prima prova: cerca il contenuto tra ```json e ```
-    const jsonMatch = rawResponse.match(/```json\s*([\s\S]*?)\s*```/);
-    if (jsonMatch && jsonMatch[1]) {
+    // 1. Cerca JSON ben formato
+    try {
+        const json = JSON.parse(rawResponse);
+        if (Array.isArray(json)) return json;
+    } catch (e) {
+        console.log("Parsing diretto fallito, tentativo pulizia...");
+    }
+
+    // 2. Rimuovi eventuali markdown e codice
+    let cleaned = rawResponse
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .replace(/^[\s\S]*?\[/, '[') // Rimuovi tutto prima della prima [
+        .replace(/}\s*][\s\S]*$/, '}]'); // Rimuovi tutto dopo l'ultima ]
+
+    // 3. Prova a parsare il JSON pulito
+    try {
+        const json = JSON.parse(cleaned);
+        if (Array.isArray(json)) return json;
+    } catch (e) {
+        console.log("Parsing dopo pulizia fallito", e);
+    }
+
+    // 4. Estrazione manuale come ultima risorsa
+    const manualCards = [];
+    const qMatches = rawResponse.match(/"question"\s*:\s*"([^"]+)"/g) || [];
+    const aMatches = rawResponse.match(/"answer"\s*:\s*"([^"]+)"/g) || [];
+    
+    for (let i = 0; i < Math.min(qMatches.length, aMatches.length); i++) {
         try {
-            return JSON.parse(jsonMatch[1].trim());
+            const q = qMatches[i].match(/"question"\s*:\s*"([^"]+)"/)[1];
+            const a = aMatches[i].match(/"answer"\s*:\s*"([^"]+)"/)[1];
+            manualCards.push({ question: q, answer: a });
         } catch (e) {
-            console.error("Parsing fallito dopo estrazione da markdown:", e);
+            console.log("Errore estrazione manuale", e);
         }
     }
-    
-    // Seconda prova: cerca eventuali array JSON nella risposta
-    const arrayMatch = rawResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
-    if (arrayMatch) {
-        try {
-            return JSON.parse(arrayMatch[0]);
-        } catch (e) {
-            console.error("Parsing dell'array JSON fallito:", e);
-        }
-    }
-    
-    // Terza prova: se la risposta sembra essere JSON ma è troncata, prova a ripararla
-    if (rawResponse.includes('"question"') && rawResponse.includes('"answer"')) {
-        try {
-            // Prova a chiudere l'array se appare troncato
-            let fixedJson = rawResponse;
-            if (!fixedJson.trim().endsWith(']')) {
-                // Trova l'ultimo oggetto completo e chiudi l'array
-                const lastCompleteObject = fixedJson.lastIndexOf('"}');
-                if (lastCompleteObject > 0) {
-                    fixedJson = fixedJson.substring(0, lastCompleteObject + 2) + '}]';
-                }
-            }
-            return JSON.parse(fixedJson);
-        } catch (e) {
-            console.error("Riparazione JSON fallita:", e);
-        }
-    }
-    
-    // Ultimo tentativo: prova ad estrarre manualmente domande e risposte
-    const questions = rawResponse.match(/"question":\s*"([^"]+)"/g);
-    const answers = rawResponse.match(/"answer":\s*"([^"]+)"/g);
-    
-    if (questions && answers && questions.length === answers.length) {
-        try {
-            const result = [];
-            for (let i = 0; i < questions.length; i++) {
-                const q = questions[i].match(/"question":\s*"([^"]+)"/)[1];
-                const a = answers[i].match(/"answer":\s*"([^"]+)"/)[1];
-                result.push({ question: q, answer: a });
-            }
-            return result;
-        } catch (e) {
-            console.error("Estrazione manuale fallita:", e);
-        }
-    }
-    
-    // Se tutti i tentativi falliscono, mostra la risposta grezza
-    console.error("Impossibile parsare la risposta:", rawResponse);
-    return null;
+
+    return manualCards.length > 0 ? manualCards : null;
 }
 
 // Funzione helper per escape HTML
