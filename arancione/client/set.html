@@ -454,6 +454,17 @@
     margin-bottom: 10px;
 }
 
+/* Stile aggiornato per il contenitore del pulsante */
+.add-deck-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Spaziatura tra gli elementi */
+    flex-wrap: nowrap; /* Impedisce che gli elementi vadano a capo */
+}
+.add-deck-button {
+    white-space: nowrap; /* Impedisce che il testo vada a capo */
+}
+
     </style>
 </head>
 <body>
@@ -509,9 +520,7 @@
                 <i class="fas fa-trash"></i>
             </div>
         </div>
-        <div class="set-actions">
-            <button id="generate-flashcards-button" class="auth-button">Genera Flashcard</button>
-        </div>
+        
     </div>
     
     <!-- Add Card Button -->
@@ -520,6 +529,7 @@
             <i class="fas fa-plus"></i>
         </div>
         <div class="add-deck-button">Add flashcard</div>
+        <button id="generate-flashcards-button" class="auth-button" >Generate with AI</button>
     </div>
     
     <!-- Cards Container -->
@@ -607,7 +617,6 @@
     <div class="modal" id="generate-flashcards-modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2>Genera Flashcard con AI</h2>
             <div class="form-group">
                 <textarea id="flashcard-source-text" class="form-input" placeholder="Inserisci qui il testo da cui generare le flashcard..." rows="8" required></textarea>
             </div>
