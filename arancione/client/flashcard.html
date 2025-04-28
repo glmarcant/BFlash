@@ -196,10 +196,11 @@
     background-color: #f5a867;
 }
 .flashcard-options {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-    }
+    position: absolute;
+    top: 80px; /* Stessa altezza del pulsante Back */
+    right: 20px; /* Posizionato a destra */
+    z-index: 2;
+}
 
     .options-button {
         padding: 10px 15px;
@@ -242,17 +243,67 @@
     color: var(--gray);
 }
 
+
 /* Responsive */
 @media (max-width: 768px) {
     .flashcard-container {
-        min-height: 300px;
+        height: 450px; /* Altezza fissa ridotta */
+        padding: 15px;
+        margin-left: 10px;
+        margin-right: 10px;
+        margin-top: 65px;
     }
 
     .flashcard-content {
-        font-size: 20px;
-        margin: 30px 0;
+        font-size: 18px;
+        margin: 20px 0;
+        padding: 10px;
+    }
+
+    .flashcard-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 10px;
+    }
+
+    .deck-name, .set-name {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .flashcard-actions {
+        position: relative; /* Posiziona i pulsanti sotto la flashcard */
+        margin-top: 10px; /* Spazio tra la flashcard e i pulsanti */
+        display: flex;
+        justify-content: space-between; /* Allinea i pulsanti a sinistra e a destra */
+        padding: 0 10px; /* Aggiunge un po' di spazio ai lati */
+    }
+
+    .action-button {
+        width: 45%; /* I pulsanti occupano il 45% della larghezza ciascuno */
+        padding: 10px 15px;
+        font-size: 14px;
+        text-align: center;
+    }x
+
+    .flashcard-difficulty {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .difficulty-button {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .progress-bar-container {
+        margin-left: 10px;
+        margin-right: 10px;
     }
 }
+
 
 @media (max-width: 480px) {
     .flashcard-container {
