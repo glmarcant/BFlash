@@ -9,12 +9,35 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Stili specifici per la pagina dei set */
-        .deck-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+    .deck-header {
+    display: flex; /* Cambia da grid a flex */
+    justify-content: space-between; /* Spaziatura tra gli elementi */
+    align-items: center;
+    margin-bottom: 30px;
+    max-width: 100%;
+}
+.deck-title-container {
+    text-align: center;
+    margin-top: 20px; /* Spazio tra l'header e il titolo */
+}
+.deck-title {
+    font-size: 36px;
+    font-weight: 700;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 30px;
+
+}
+
+.deck-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0; /* Impedisce ai pulsanti di rimpicciolirsi */
+    margin-left: auto; /* Spinge i pulsanti verso destra */
+}
+
         
         .back-button {
             display: flex;
@@ -32,18 +55,6 @@
         .back-button:hover {
             background-color: var(--sidebar-hover);
             transform: translateX(-2px);
-        }
-        
-        .deck-title {
-            font-size: 36px;
-            font-weight: 700;
-            text-align: center;
-            flex-grow: 1;
-        }
-        
-        .deck-actions {
-            display: flex;
-            gap: 10px;
         }
         
         .action-button {
@@ -203,75 +214,7 @@
             font-size: 15px;
             margin-bottom: 16px;
         }
-        .fixed-container {
-            grid-column: 3; /* Posiziona nella terza colonna */
-            grid-row: 1;    /* Posiziona nella prima riga */
-            background-color: var(--card-background);
-            border: 2px dashed var(--text-light); /* Stile visivo per distinguere */
-            border-radius: 16px;
-            height: 200px; /* Altezza fissa */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-light);
-            font-size: 14px;
-        }
-        .study-unknown-button {
-    background-color: #dd9528; /* Colore più vivace */
-    color: #fff;
-    padding: 14px 24px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
 
-        .study-unknown-button:hover {
-            background-color: #f5a867;
-        }
-        
-        
-
-.slide-icon {
-    font-size: 32px;
-    margin-bottom: 15px;
-    color: #f5a623; /* Colore più accattivante */
-}
-
-.slide-title {
-    font-weight: 700;
-    font-size: 18px;
-    margin-bottom: 10px;
-    text-align: center;
-    color: var(--text);
-}
-
-.slide-description {
-    font-size: 14px;
-    text-align: center;
-    color: var(--text-light);
-    margin-bottom: 20px;
-}
-
-.button-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-}
-
-
-
-.study-unknown-button:hover {
-    background-color: #e68900;
-    transform: translateY(-2px);
-}
 /* Stili per le barre di progresso personalizzate */
 .progress-container {
     margin-top: auto; /* Spinge la barra di progresso verso il basso */
@@ -550,6 +493,60 @@
 .set-card {
     position: relative;  /* Aggiungi questa proprietà */
 }
+.study-set-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Aggiunge spazio tra i pulsanti */
+    margin-top: 20px;
+}
+
+.study-unknown-button {
+    background-color: #dd9528;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.study-unknown-button:hover {
+    background-color: #e68900;
+    transform: translateY(-2px);
+}
+
+@media screen and (max-width: 768px) {
+        .deck-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center; /* Cambia da center a flex-start */
+
+    }
+    
+    .deck-title {
+        font-size: 36px;
+        font-weight: 700;
+        text-align: center;
+        flex-grow: 1;
+
+        margin-bottom: 20px; /* Aggiungi spazio sotto il titolo */
+        width: 100%; /* Permetti al titolo di utilizzare tutta la larghezza disponibile */
+    }
+    
+    .deck-actions {
+        align-self: flex-start; /* Mantiene i pulsanti allineati in alto */
+    }
+    
+    .back-button {
+        align-self: flex-start; /* Mantiene il pulsante back allineato in alto */
+    }
+    
+}
 </style>
 </head>
 <body>
@@ -579,7 +576,6 @@
             </div>
         </div>
     </header>
-    
     <!-- Aggiungi questa nuova sezione dopo l'header -->
 <div class="search-results-container" style="display: none;">
     <div class="search-results">
@@ -587,15 +583,13 @@
     </div>
 </div>
 
-    <!-- Deck Header -->
+       <!-- Deck Header -->
     <div class="deck-header">
         <div class="back-button" id="back-button">
             <i class="fas fa-arrow-left"></i>
             <span style="margin-left: 8px;">Home</span>
         </div>
-        <h1 class="deck-title" id="deck-title"></h1>
         <div class="deck-actions">
-            
             <div class="action-button" id="edit-button" title="Edit deck">
                 <i class="fas fa-edit"></i>
             </div>
@@ -605,6 +599,11 @@
         </div>
     </div>
     
+    <!-- Nuovo div per il titolo -->
+    <div class="deck-title-container">
+        <h1 class="deck-title" id="deck-title"></h1>
+    </div>
+    
     <!-- Add Set Button -->
     <div class="add-deck-container" id="add-set-button">
         <div class="add-circle">
@@ -612,37 +611,24 @@
         </div>
         <div class="add-deck-button">Add new set</div>
     </div>
+    <div class="study-set-container">
+        <button class="study-set-button" id="study-deck-button">Study deck</button>
+        <button class="study-unknown-button" id="study-unknown-button">
+            <i class="fas fa-play"></i> Practice mistakes
+        </button>
+    </div>
     
     <!-- Sets Container -->
     <div class="sets-container" id="sets-container">
         <div class="no-sets">No sets available. Add your first set!</div>
-        <!-- Nuovo container vuoto per la terza flashcard -->
-        <div class="set-card fixed-container">
-    <div class="tab-container">
-        <div class="tab-content active" id="tab-1">
-            <div class="slide-icon">
-                <i class="fas fa-lightbulb"></i>
-            </div>
-            <div class="slide-title">Concentrati sulle tue difficoltà</div>
-            <div class="slide-description">
-                Rivedi le flashcard che non sai di questo deck  e migliora le tue conoscenze.
-            </div>
-            <div class="button-container">
-                <button class="study-unknown-button">
-                    <i class="fas fa-play"></i> Inizia a studiare
-                </button>
-            </div>
-        </div>
+        
     </div>
 </div>
 
         
     </div>
     
-    <!-- Aggiungi questo codice sotto il contenitore dei set -->
-<div class="study-set-container">
-    <button class="study-set-button" id="study-deck-button">Study deck</button>
-</div>
+    
     
     <!-- Add Set Modal -->
     <div class="modal" id="add-set-modal" style="display: none;">
@@ -831,8 +817,7 @@ async function loadSets() {
         const container = document.getElementById('sets-container');
         const studyDeckButton = document.querySelector('.study-set-container');
         
-        // Salva il carosello
-        const carousel = container.querySelector('.fixed-container');
+
         
         // Svuota il container
         container.innerHTML = '';
@@ -961,18 +946,8 @@ setElement.addEventListener('click', (e) => {
             }
         }
     
-        // Gestisci la visibilità del pulsante study deck e del fixed container
-        if (totalCards === 0) {
-            // Se non ci sono card in nessun set, nascondi entrambi
-            studyDeckButton.style.display = 'none';
-            // Non aggiungere il carousel al container
-        } else {
-            // Se ci sono card, mostra entrambi
-            studyDeckButton.style.display = 'flex';
-            if (carousel) {
-                container.appendChild(carousel);
-            }
-        }
+        // Gestisci la visibilità del pulsante study deck
+        studyDeckButton.style.display = totalCards === 0 ? 'none' : 'flex';
     }
         // Funzione per eliminare un set
         async function deleteSet(setId) {
@@ -1255,10 +1230,7 @@ async function performSearch(query) {
         }
     });
 
-    // Pulsante per studiare le flashcard non conosciute
-    document.querySelector('.study-unknown-button').addEventListener('click', () => {
-        window.location.href = `flashcard.html?deckId=${currentDeckId}&mode=unknown`;
-    });
+ 
 
     
 
@@ -1354,10 +1326,12 @@ document.getElementById('study-deck-button').addEventListener('click', () => {
         alert('Deck ID mancante!');
         return;
     }
-    
-
     // Reindirizzamento al sito di test
     window.location.href = `flashcard.html?deckId=${currentDeckId}`;});
+
+document.getElementById('study-unknown-button').addEventListener('click', () => {
+    window.location.href = `flashcard.html?deckId=${currentDeckId}&mode=unknown`;
+});
 
 let currentMoveSetId = null;
 

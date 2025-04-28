@@ -7,13 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Stili specifici per la pagina dei set */
-        .set-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+        
         
         .back-button {
             display: flex;
@@ -33,17 +27,9 @@
             transform: translateX(-2px);
         }
         
-        .set-title {
-            font-size: 36px;
-            font-weight: 700;
-            text-align: center;
-            flex-grow: 1;
-        }
         
-        .set-actions {
-            display: flex;
-            gap: 10px;
-        }
+        
+        
         
         .action-button {
             width: 44px;
@@ -465,6 +451,120 @@
     white-space: nowrap; /* Impedisce che il testo vada a capo */
 }
 
+.set-header {
+    display: flex; /* Cambia da grid a flex */
+    justify-content: space-between; /* Spaziatura tra gli elementi */
+    align-items: center;
+    max-width: 100%;
+}
+
+.set-title {
+    font-size: 36px;
+    font-weight: 700;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 30px;
+
+}
+.set-title-container {
+    text-align: center;
+    margin-top: 20px; /* Spazio tra l'header e il titolo */
+}
+
+.set-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0; /* Impedisce ai pulsanti di rimpicciolirsi */
+    margin-left: auto; /* Spinge i pulsanti verso destra */
+}
+
+
+
+/* Aggiungi questo codice CSS nella sezione style, prima della media query */
+
+.mobile-menu-button {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background-color: var(--card-background);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobile-menu-button:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.mobile-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    z-index: 100;
+    min-width: 200px;
+}
+
+.mobile-menu-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobile-menu-item:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.mobile-menu-item.delete:hover {
+    color: #dc3545;
+}
+
+/* Modifica la media query esistente */
+@media screen and (max-width: 768px) {
+    .set-actions {
+        display: none;
+    }
+
+    .mobile-menu-button {
+        display: flex;
+    }
+
+    .set-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+    }
+    
+    .set-title {
+        font-size: 36px;
+        font-weight: 700;
+        text-align: center;
+        flex-grow: 1;
+        margin-bottom: 20px;
+
+    }
+    
+    .set-actions {
+        align-self: flex-start;
+    }
+    
+    .back-button {
+        align-self: flex-start;
+    }
+}
+
+
     </style>
 </head>
 <body>
@@ -502,14 +602,12 @@
 </div>
     
     <!-- Set Header -->
-    <div class="set-header">
+        <div class="set-header">
         <div class="back-button" id="back-button">
             <i class="fas fa-arrow-left"></i>
             <span style="margin-left: 8px;">Deck</span>
         </div>
-        <h1 class="set-title" id="set-title">Set</h1>
         <div class="set-actions">
-            
             <div class="action-button toggle-answer-button" id="toggle-answer-button" title="Show/Hide answers">
                 <i class="fas fa-eye"></i>
             </div>
@@ -520,7 +618,25 @@
                 <i class="fas fa-trash"></i>
             </div>
         </div>
-        
+        <div class="mobile-menu-button" id="mobile-menu-button">
+            <i class="fas fa-ellipsis-v"></i>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <div class="mobile-menu-item" id="mobile-toggle-answer">
+                <i class="fas fa-eye"></i> Mostra/Nascondi risposte
+            </div>
+            <div class="mobile-menu-item" id="mobile-edit">
+                <i class="fas fa-edit"></i> Modifica set
+            </div>
+            <div class="mobile-menu-item delete" id="mobile-delete">
+                <i class="fas fa-trash"></i> Elimina set
+            </div>
+        </div>
+    </div>
+
+    <!-- Nuovo div per il titolo -->
+    <div class="set-title-container">
+        <h1 class="set-title" id="set-title">Set</h1>
     </div>
     
     <!-- Add Card Button -->
@@ -530,6 +646,9 @@
         </div>
         <div class="add-deck-button">Add flashcard</div>
         <button id="generate-flashcards-button" class="auth-button" >Generate with AI</button>
+    </div>
+    <div class="study-set-container">
+        <button class="study-set-button" id="study-set-button">Study set</button>
     </div>
     
     <!-- Cards Container -->
@@ -610,9 +729,7 @@
     <pre id="flashcard-content" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
 </div>
 
-    <div class="study-set-container">
-        <button class="study-set-button" id="study-set-button">Study set</button>
-    </div>
+    
     <!-- Generate Flashcards Modal -->
     <div class="modal" id="generate-flashcards-modal" style="display: none;">
         <div class="modal-content">
@@ -898,8 +1015,7 @@ async function performSearch(query) {
                     <div class="search-result-item" onclick="window.location.href='set.html?deckId=${result.deckId}&setId=${set._id}'">
                         <span class="search-type-label">Set</span>
                         <div class="search-result-title">${set.name}</div>
-                        <div class="search-result-content">in ${result.deckName}</div>
-                    </div>`;
+                        <div class="search-result-content">in ${result.deckName}</div>`;
             });
             
             // Per ogni card nel deck
@@ -1221,6 +1337,92 @@ async function performSearch(query) {
             });
 
             setupGenerateFlashcardsEvents();
+
+            // Aggiungi questo codice alla fine della funzione setupEventListeners()
+
+            // Menu mobile
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.style.display = mobileMenu.style.display === 'none' || mobileMenu.style.display === '' ? 'block' : 'none';
+            });
+
+            // Chiudi il menu quando si clicca fuori
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                    mobileMenu.style.display = 'none';
+                }
+            });
+
+            // Event listeners per le azioni del menu mobile
+            document.getElementById('mobile-toggle-answer').addEventListener('click', () => {
+                const answers = document.querySelectorAll('.card-item p');
+                const icon = document.querySelector('#mobile-toggle-answer i');
+                
+                answers.forEach(answer => {
+                    if (answer.style.display === 'none' || answer.style.display === '') {
+                        answer.style.display = 'block';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        answer.style.display = 'none';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+                mobileMenu.style.display = 'none';
+            });
+
+            document.getElementById('mobile-edit').addEventListener('click', async () => {
+                const newName = prompt('Inserisci il nuovo nome del set:', document.getElementById('set-title').textContent);
+                if (newName && newName.trim() !== '') {
+                    try {
+                        const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-auth-token': localStorage.getItem('token')
+                            },
+                            body: JSON.stringify({ name: newName })
+                        });
+                        
+                        if (!response.ok) throw new Error('Errore nella modifica del set');
+                        
+                        const updatedSet = await response.json();
+                        document.getElementById('set-title').textContent = updatedSet.name;
+                        
+                    } catch (error) {
+                        console.error('Errore:', error);
+                        alert(`Errore: ${error.message}`);
+                    }
+                }
+                mobileMenu.style.display = 'none';
+            });
+
+            document.getElementById('mobile-delete').addEventListener('click', async () => {
+                if (confirm('Sei sicuro di voler eliminare questo set e tutte le sue flashcard? Questa azione non può essere annullata.')) {
+                    try {
+                        const response = await fetch(`${API_URL}/sets/${currentDeckId}/sets/${currentSetId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'x-auth-token': localStorage.getItem('token')
+                            }
+                        });
+                        
+                        if (!response.ok) throw new Error('Errore nell\'eliminazione del set');
+                        
+                        alert('Set eliminato con successo!');
+                        window.location.href = `deck.html?id=${currentDeckId}`;
+                        
+                    } catch (error) {
+                        console.error('Errore:', error);
+                        alert(`Errore: ${error.message}`);
+                    }
+                }
+                mobileMenu.style.display = 'none';
+            });
         }
 
         let currentMoveCardId = null;
