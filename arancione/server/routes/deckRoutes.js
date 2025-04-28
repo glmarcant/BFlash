@@ -1,6 +1,7 @@
 const express = require('express');
 const Deck = require('../models/Deck');
 const Set = require('../models/Set');  
+const Card = require('../models/Card'); // Aggiungi questa riga
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
@@ -103,26 +104,33 @@ router.put('/:id', auth, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const deck = await Deck.findById(req.params.id);
-    
+
     if (!deck) return res.status(404).json({ message: 'Deck not found' });
-    
+
     if (deck.owner.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
-    
-    // Cancella tutti i set associati al deck
+
+    // Trova tutti i set associati al deck
+    const sets = await Set.find({ deck: deck._id });
+
+    // Elimina tutte le card associate ai set del deck
+    const setIds = sets.map(set => set._id);
+    await Card.deleteMany({ set: { $in: setIds } });
+
+    // Elimina tutti i set associati al deck
     await Set.deleteMany({ deck: deck._id });
-    
+
     // Rimuovi il deck
     await Deck.findByIdAndDelete(req.params.id);
-    
+
     // Aggiorna l'utente
     await User.findByIdAndUpdate(
       req.user.id,
       { $pull: { decks: req.params.id } }
     );
-    
-    res.json({ message: 'Deck and associated sets deleted' });
+
+    res.json({ message: 'Deck, sets, and cards deleted successfully' });
   } catch (err) {
     console.error('Errore durante l\'eliminazione del deck:', err.message);
     res.status(500).json({ message: 'Server error' });
